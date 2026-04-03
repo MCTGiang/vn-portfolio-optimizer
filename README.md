@@ -1,2 +1,67 @@
-# vn-portfolio-optimizer
-Smart portfolio optimization system for Vietnamese stock market using Modern Portfolio Theory, Ensemble ML and Risk Management
+# VN Portfolio Optimizer
+
+A smart portfolio optimization system for the Vietnamese stock market,
+built with Modern Portfolio Theory (Markowitz), Ensemble ML, and Risk Management.
+
+## Roadmap
+
+| Phase | Timeline | Scope |
+|-------|----------|-------|
+| Project 1 | Apr–May 2025 | Minimum Variance Portfolio, SQLite pipeline, Streamlit dashboard |
+| Project 2 | Jun–Sep 2025 | Efficient Frontier, Auto-Rebalancing, NLP Sentiment Analysis |
+| Thesis | Oct 2025–Mar 2026 | Ensemble ML, VaR/CVaR Risk Management, Backtesting Engine |
+
+## Tech Stack
+
+- **Data collection**: vnstock, pandas, SQLite
+- **Optimization**: numpy, scipy.optimize
+- **Visualization**: Streamlit, Plotly
+- **ML (Phase 2+)**: scikit-learn, XGBoost, TensorFlow
+
+## Project Structure
+```
+vn-portfolio-optimizer/
+├── data/
+│   ├── raw/               # Raw OHLCV data from vnstock
+│   └── processed/         # Cleaned data and feature matrices
+├── notebooks/             # EDA and experimentation notebooks
+├── src/                   # Reusable Python modules
+│   ├── data_loader.py     # ETL pipeline, SQLite connection
+│   ├── features.py        # Returns, volatility calculations
+│   ├── portfolio_metrics.py  # Expected return, covariance matrix
+│   └── optimizer.py       # scipy-based portfolio optimizer
+├── app/
+│   └── app.py             # Streamlit dashboard
+├── reports/               # PDF reports and result figures
+├── requirements.txt
+└── README.md
+```
+
+## Getting Started
+```bash
+git clone https://github.com/MCTGiang/vn-portfolio-optimizer.git
+cd vn-portfolio-optimizer
+pip install -r requirements.txt
+```
+
+## Live Demo
+
+Streamlit App: *(to be updated in Week 6)*
+
+## Data Source
+
+Stock price data is sourced from the Ho Chi Minh Stock Exchange (HOSE)
+and Hanoi Stock Exchange (HNX) via the `vnstock` library (public data, no credentials required).
+
+## Results — Project 1
+
+| Portfolio | Expected Return | Volatility | Sharpe Ratio |
+|-----------|----------------|------------|--------------|
+| Minimum Variance | TBD | TBD | TBD |
+| Equal Weights | TBD | TBD | TBD |
+
+*(Results will be updated upon project completion)*
+
+## License
+
+MIT
