@@ -38,12 +38,15 @@ vn-portfolio-optimizer/
 ```
 
 ## Getting Started
+
 ```bash
 git clone https://github.com/MCTGiang/vn-portfolio-optimizer.git
 cd vn-portfolio-optimizer
 pip install -r requirements.txt
-```
 
+# Fetch stock data (run once to populate local database)
+python src/data_loader.py
+```
 ## Live Demo
 
 Streamlit App: *(to be updated in Week 6)*
