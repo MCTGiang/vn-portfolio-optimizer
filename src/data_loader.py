@@ -1,34 +1,51 @@
 """
 data_loader.py
-ETL pipeline for VN stock market data using yfinance.
-Fetches OHLCV data and stores in local SQLite database.
+ETL pipeline for VN stock market data.
+Primary source : vnstock3 VCIQuote (accurate VND prices, exact date range)
+Fallback source: yfinance
 """
 
 import sqlite3
 import os
+import time
 import pandas as pd
-import yfinance as yf
 from datetime import datetime
 
-# ── Configuration ────────────────────────────────────────────────────────────
+# ── Configuration ──────────────────────────────────────────────────────────────
 
 DB_PATH = os.path.join(os.path.dirname(__file__), '..', 'data', 'raw', 'portfolio.db')
 
 VN30_TICKERS = [
-    'VCB.VN', 'VNM.VN', 'HPG.VN', 'FPT.VN', 'MWG.VN',
-    'VIC.VN', 'GAS.VN', 'BID.VN', 'CTG.VN', 'TCB.VN'
+    # Banks (14 mã)
+    'VCB', 'BID', 'CTG', 'TCB', 'MBB',
+    'VPB', 'ACB', 'HDB', 'STB', 'SHB',
+    'LPB', 'OCB', 'MSB', 'EIB',
+    # Real estate
+    'VIC', 'VHM', 'VRE',
+    # Technology
+    'FPT',
+    # Consumer
+    'VNM', 'MWG', 'SAB',
+    # Energy / Oil & Gas
+    'GAS', 'PLX',
+    # Steel / Materials
+    'HPG',
+    # Insurance
+    'BVH',
+    # Logistics / Aviation
+    'HVN', 'GMD',
+    # Others
+    'PDR', 'KDC', 'REE'
 ]
 
-# ── Database helpers ──────────────────────────────────────────────────────────
+# ── Database helpers ───────────────────────────────────────────────────────────
 
 def get_connection() -> sqlite3.Connection:
-    """Return a SQLite connection, creating the DB file if needed."""
-    os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
+    os.makedirs(os.path.dirname(os.path.abspath(DB_PATH)), exist_ok=True)
     return sqlite3.connect(DB_PATH)
 
 
 def create_table() -> None:
-    """Create Stock_Prices table if it does not exist."""
     conn = get_connection()
     conn.execute('''
         CREATE TABLE IF NOT EXISTS Stock_Prices (
@@ -47,137 +64,193 @@ def create_table() -> None:
     print("✅ Table Stock_Prices ready")
 
 
-# ── Fetch & insert ────────────────────────────────────────────────────────────
+# ── Fetch: vnstock3 VCI (primary) ─────────────────────────────────────────────
 
-def fetch_ticker(ticker: str, start: str, end: str) -> pd.DataFrame:
+def fetch_ticker_vci(ticker: str, start: str, end: str) -> pd.DataFrame:
     """
-    Download OHLCV data from Yahoo Finance.
-
-    Args:
-        ticker: Yahoo Finance ticker symbol (e.g. 'VCB.VN')
-        start:  Start date 'YYYY-MM-DD'
-        end:    End date   'YYYY-MM-DD'
-
-    Returns:
-        Cleaned DataFrame with columns [Ticker, Date, Open, High, Low, Close, Volume]
+    Fetch OHLCV from VCI via vnstock3.
+    Prices in VND/1000 (e.g. VCB = 58.77 means 58,770 VND).
+    Exact date range, no adjusted prices.
     """
-    df = yf.download(ticker, start=start, end=end,
-                     auto_adjust=False, progress=False)
+    try:
+        from vnstock3.explorer.vci.quote import Quote as VCIQuote
+        q  = VCIQuote(symbol=ticker, show_log=False)
+        df = q.history(start=start, end=end, interval='1D')
 
-    if df.empty:
-        print(f"⚠️  No data returned for {ticker}")
+        if df.empty:
+            return pd.DataFrame()
+
+        out = pd.DataFrame({
+            'Ticker': ticker,
+            'Date'  : pd.to_datetime(df['time']).dt.strftime('%Y-%m-%d'),
+            'Open'  : df['open'].astype(float),
+            'High'  : df['high'].astype(float),
+            'Low'   : df['low'].astype(float),
+            'Close' : df['close'].astype(float),
+            'Volume': df['volume'].fillna(0).astype(int),
+        })
+        time.sleep(4)
+        return out
+
+    except Exception as e:
+        print(f"  ⚠️  VCI error [{ticker}]: {type(e).__name__}: {str(e)[:80]}")
         return pd.DataFrame()
 
-    # Flatten multi-level columns
-    df.columns = [col[0] if isinstance(col, tuple) else col
-                  for col in df.columns]
 
-    df = df[['Open', 'High', 'Low', 'Close', 'Volume']].copy()
-    df.index.name = 'Date'
-    df.reset_index(inplace=True)
-    df['Date']   = df['Date'].astype(str)
-    df['Ticker'] = ticker.replace('.VN', '')   # store as 'VCB', not 'VCB.VN'
-    df['Volume'] = df['Volume'].fillna(0).astype(int)
+# ── Fetch: yfinance (fallback) ─────────────────────────────────────────────────
 
-    return df[['Ticker', 'Date', 'Open', 'High', 'Low', 'Close', 'Volume']]
+def fetch_ticker_yfinance(ticker: str, start: str, end: str) -> pd.DataFrame:
+    """Fallback using yfinance. Prices are adjusted — less accurate."""
+    try:
+        import yfinance as yf
+        df = yf.download(ticker + '.VN', start=start, end=end,
+                         auto_adjust=False, progress=False)
+        if df.empty:
+            return pd.DataFrame()
 
+        df.columns = [c[0] if isinstance(c, tuple) else c for c in df.columns]
+        df.index.name = 'Date'
+        df = df.reset_index()
+
+        return pd.DataFrame({
+            'Ticker': ticker,
+            'Date'  : df['Date'].astype(str),
+            'Open'  : df['Open'].astype(float),
+            'High'  : df['High'].astype(float),
+            'Low'   : df['Low'].astype(float),
+            'Close' : df['Close'].astype(float),
+            'Volume': df['Volume'].fillna(0).astype(int),
+        })
+    except Exception as e:
+        print(f"  ⚠️  yfinance error [{ticker}]: {type(e).__name__}: {str(e)[:80]}")
+        return pd.DataFrame()
+
+
+# ── Smart fetch with fallback ──────────────────────────────────────────────────
+
+def fetch_ticker(ticker: str, start: str, end: str) -> pd.DataFrame:
+    """Try VCI first, fall back to yfinance if VCI returns empty."""
+    df = fetch_ticker_vci(ticker, start, end)
+    if df.empty:
+        print(f"  → Fallback to yfinance for {ticker}")
+        df = fetch_ticker_yfinance(ticker, start, end)
+    return df
+
+
+# ── Insert to DB ───────────────────────────────────────────────────────────────
 
 def insert_to_db(df: pd.DataFrame) -> int:
-    """
-    Insert DataFrame rows into Stock_Prices, skipping duplicates.
-
-    Returns:
-        Number of rows inserted.
-    """
+    """Insert rows, skip duplicates. Returns number of new rows inserted."""
     if df.empty:
         return 0
-
     conn = get_connection()
-    inserted = 0
-    for _, row in df.iterrows():
-        try:
-            conn.execute('''
-                INSERT OR IGNORE INTO Stock_Prices
-                (Ticker, Date, Open, High, Low, Close, Volume)
-                VALUES (?, ?, ?, ?, ?, ?, ?)
-            ''', tuple(row))
-            inserted += 1
-        except Exception as e:
-            print(f"⚠️  Insert error: {e}")
+    cursor = conn.executemany(
+        '''INSERT OR IGNORE INTO Stock_Prices
+           (Ticker, Date, Open, High, Low, Close, Volume)
+           VALUES (?, ?, ?, ?, ?, ?, ?)''',
+        df[['Ticker','Date','Open','High','Low','Close','Volume']].values.tolist()
+    )
+    inserted = cursor.rowcount
     conn.commit()
     conn.close()
     return inserted
 
 
-# ── Load from DB ──────────────────────────────────────────────────────────────
+# ── Load from DB ───────────────────────────────────────────────────────────────
 
 def load_from_db(ticker: str, start: str, end: str) -> pd.DataFrame:
     """
-    Load historical prices from SQLite.
-
-    Args:
-        ticker: Ticker without suffix (e.g. 'VCB')
-        start:  Start date 'YYYY-MM-DD'
-        end:    End date   'YYYY-MM-DD'
-
-    Returns:
-        DataFrame indexed by Date with columns [Open, High, Low, Close, Volume]
+    Load OHLCV from SQLite for one ticker.
+    Returns DataFrame indexed by Date.
     """
-    conn = get_connection()
+    conn  = get_connection()
     query = '''
         SELECT Date, Open, High, Low, Close, Volume
         FROM   Stock_Prices
-        WHERE  Ticker = ?
-          AND  Date  >= ?
-          AND  Date  <= ?
+        WHERE  Ticker = ? AND Date >= ? AND Date <= ?
         ORDER  BY Date
     '''
     df = pd.read_sql_query(query, conn, params=(ticker, start, end))
     conn.close()
-
     df['Date'] = pd.to_datetime(df['Date'])
     df.set_index('Date', inplace=True)
     return df
 
 
 def get_all_tickers() -> list:
-    """Return list of all unique tickers stored in DB."""
-    conn = get_connection()
-    cursor = conn.execute('SELECT DISTINCT Ticker FROM Stock_Prices ORDER BY Ticker')
-    tickers = [row[0] for row in cursor.fetchall()]
+    conn    = get_connection()
+    cursor  = conn.execute('SELECT DISTINCT Ticker FROM Stock_Prices ORDER BY Ticker')
+    tickers = [r[0] for r in cursor.fetchall()]
     conn.close()
     return tickers
 
 
-# ── Full pipeline ─────────────────────────────────────────────────────────────
+def get_db_summary() -> pd.DataFrame:
+    """Return row count and date range per ticker."""
+    conn  = get_connection()
+    query = '''
+        SELECT Ticker,
+               COUNT(*)  AS rows,
+               MIN(Date) AS start_date,
+               MAX(Date) AS end_date
+        FROM   Stock_Prices
+        GROUP  BY Ticker
+        ORDER  BY Ticker
+    '''
+    df = pd.read_sql_query(query, conn)
+    conn.close()
+    return df
 
-def update_db(tickers: list = VN30_TICKERS,
+
+# ── Full pipeline ──────────────────────────────────────────────────────────────
+
+def update_db(tickers: list = None,
               start: str = '2021-01-01',
-              end: str = None) -> None:
+              end: str = None,
+              replace: bool = False) -> None:
     """
-    Fetch and store data for a list of tickers.
+    Fetch and store OHLCV for a list of tickers.
 
     Args:
-        tickers: List of Yahoo Finance ticker symbols
-        start:   Start date 'YYYY-MM-DD'
-        end:     End date (defaults to today)
+        tickers : List of VN tickers. Defaults to VN30_TICKERS.
+        start   : Start date 'YYYY-MM-DD'. Default '2021-01-01'.
+        end     : End date. Defaults to today.
+        replace : If True, delete existing rows before inserting.
     """
+    if tickers is None:
+        tickers = VN30_TICKERS
     if end is None:
         end = datetime.today().strftime('%Y-%m-%d')
 
     create_table()
-    print(f"\n📥 Fetching {len(tickers)} tickers from {start} to {end}\n")
 
+    if replace:
+        conn = get_connection()
+        placeholders = ','.join('?' * len(tickers))
+        conn.execute(
+            f'DELETE FROM Stock_Prices WHERE Ticker IN ({placeholders})', tickers
+        )
+        conn.commit()
+        conn.close()
+        print(f"🗑️  Cleared existing rows for: {tickers}\n")
+
+    print(f"📥 Fetching {len(tickers)} tickers | {start} → {end}")
+    print(f"   Source: vnstock3 VCI (fallback: yfinance)\n")
+
+    total = 0
     for ticker in tickers:
-        df = fetch_ticker(ticker, start, end)
-        n  = insert_to_db(df)
-        label = ticker.replace('.VN', '')
-        print(f"  {label:6s} → {n:4d} rows inserted")
+        df     = fetch_ticker(ticker, start, end)
+        n      = insert_to_db(df)
+        total += n
+        icon   = '✅' if n > 0 else '⚠️ '
+        print(f"  {icon} {ticker:5s} → {n:5,} rows")
 
-    print(f"\n✅ Done. Tickers in DB: {get_all_tickers()}")
+    print(f"\n✅ Done. Total new rows: {total:,}")
+    print("\n📊 DB Summary:")
+    print(get_db_summary().to_string(index=False))
 
 
-# ── Entry point ───────────────────────────────────────────────────────────────
+# ── Entry point ────────────────────────────────────────────────────────────────
 
 if __name__ == '__main__':
     update_db()
