@@ -10,7 +10,7 @@ Read these files to understand current state:
 - CLAUDE.md
 - project1_timeline.md
 - All files in logs/ (to see history)
-- All files in src/ (to see what is implemented)
+- All files in src/ (to see what's implemented)
 - Run: git log --oneline -20 (to see recent commits)
 
 ### Step 2 — Ask user ONE question
@@ -25,14 +25,15 @@ Use this exact template:
 ---
 # Daily Progress Log — [Weekday] DD/MM/YYYY
 **Phase:** Week [N] — [Week title from timeline]
-**Time invested:** ~[X]h (Mon–Fri 1–1.5h | Sat 3–4h | Sun 5–6h)
+**Time invested:** ~[X]h (based on schedule: Mon–Fri 1–1.5h | Sat 3–4h | Sun 5–6h)
 **Cumulative progress:** [X]% of Project 1
 
 ## Tasks completed today
 - [x] Task description — `file_modified.py`
+- [x] Task description
 
 ## Tasks not completed (reason)
-- [ ] Task description — *Reason: [why]*
+- [ ] Task description — *Reason: [why not done]*
 
 ## Code changes
 | File | Change type | Description |
@@ -43,7 +44,7 @@ Use this exact template:
 - `commit message here`
 
 ## Key decisions
-- Decision and why
+- Decision made and why
 
 ## Issues encountered
 | Issue | Resolution |
@@ -62,34 +63,36 @@ Use this exact template:
 ---
 
 ### Step 4 — Update project1_timeline.md
-Apply these changes:
-1. Mark completed tasks with ~~strikethrough~~ and ✅ YYYY-MM-DD
-2. Redistribute incomplete tasks to next available days:
-   - Mon–Fri: 1–1.5h evening → max 2 small tasks per day
-   - Sat: 3–4h → max 5 tasks
-   - Sun: 5–6h → max 8 tasks
-3. Keep deadline 26/05/2026 FIXED — never move it
-4. If ahead: add [BUFFER] tag to freed-up days
-5. If behind: mark low-priority tasks [OPTIONAL] and compress
-6. Update ACTUAL PROGRESS LOG table at bottom with today's entry
+Apply these changes to project1_timeline.md:
+
+1. Mark completed tasks: wrap in ~~strikethrough~~ and add ✅ YYYY-MM-DD
+2. Redistribute incomplete tasks to next available days respecting schedule:
+   - Mon–Fri: 1–1.5h per evening → max 2 small tasks
+   - Sat: 3–4h → max 4–5 tasks
+   - Sun: 5–6h → max 6–8 tasks
+3. Keep deadline 26/05/2026 FIXED
+4. If ahead of schedule: add [BUFFER] tag to freed-up days
+5. If behind schedule: mark low-priority tasks as [OPTIONAL] and compress
+6. Update the ACTUAL PROGRESS LOG table at bottom with today's row
 
 ### Step 5 — Update CLAUDE.md
-Update only the Current Status section:
+Update only the "Current Status" section in CLAUDE.md:
 - Current week number
 - Next task to do
-- Any new src/ files created
+- Any new files created
 
-### Step 6 — Print commit command
-Print exactly this for user to run:
+### Step 6 — Tell user what to commit
+Print exactly:
+```
 git add logs/YYYY-MM-DD_progress.md project1_timeline.md CLAUDE.md
-git commit -m "docs: daily log YYYY-MM-DD, [one line summary]"
+git commit -m "docs: daily log YYYY-MM-DD, [one line summary of what was done]"
 git push origin main
+```
 
-## Rules
+### Rules
 - All output files in English
-- Use actual function names and file names — never generic placeholders
+- Be specific: use actual function names, file names, line counts
 - Flag scope changes with ⚠️
 - Mark critical path with 🔴, optional with 🟡, buffer with 🟢
 - Never move the 26/05/2026 deadline
-- Keep each log file under 80 lines
-- One log file per calendar day — never merge two days into one file
+- Keep logs concise — max 60 lines per log file
