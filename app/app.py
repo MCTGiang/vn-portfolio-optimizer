@@ -211,6 +211,20 @@ LANG = {
 if 'lang' not in st.session_state:
     st.session_state['lang'] = 'vi'
 
+# ── Auto-init DB (phải chạy trước mọi thứ khác) ───────────────────────────────
+_DB_PATH = os.path.join(os.path.dirname(__file__), '..', 'data', 'raw', 'portfolio.db')
+if not os.path.exists(_DB_PATH):
+    st.set_page_config(page_title="VN Portfolio Optimizer", page_icon="📈", layout="wide")
+    st.info("🔄 Đang khởi tạo dữ liệu lần đầu — vui lòng chờ khoảng 3 phút...")
+    try:
+        os.makedirs(os.path.dirname(_DB_PATH), exist_ok=True)
+        from data_loader import update_db
+        update_db(start='2022-01-01')
+        st.rerun()
+    except Exception as e:
+        st.error(f"❌ Không tải được dữ liệu: {e}")
+        st.stop()
+
 # ── Sidebar ───────────────────────────────────────────────────────────────────
 with st.sidebar:
     lang_cur = st.session_state['lang']
@@ -275,20 +289,6 @@ with c_pdf:
     st.button(f"📄 {L['exp_pdf']}", use_container_width=True) 
 
 st.markdown("<hr>", unsafe_allow_html=True)
-
-# ── Auto-init DB nếu chưa có (Streamlit Cloud) ────────────────────────────────
-_DB_PATH = os.path.join(os.path.dirname(__file__), '..', 'data', 'raw', 'portfolio.db')
-if not os.path.exists(_DB_PATH):
-    with st.spinner("🔄 Đang khởi tạo dữ liệu lần đầu (~3 phút)..."):
-        try:
-            os.makedirs(os.path.dirname(_DB_PATH), exist_ok=True)
-            from data_loader import update_db
-            update_db(start='2022-01-01')
-            st.success("✅ Dữ liệu sẵn sàng!")
-            st.rerun()
-        except Exception as e:
-            st.error(f"❌ Không tải được dữ liệu: {e}")
-            st.stop()
 
 # ── Guard ─────────────────────────────────────────────────────────────────────
 if len(selected) < 2:
