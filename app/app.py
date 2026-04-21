@@ -286,7 +286,11 @@ with c_title:
     st.markdown(f"<div class='header-glossary'>{L['glossary']}</div>", unsafe_allow_html=True)
 
 with c_pdf:
-    st.button(f"📄 {L['exp_pdf']}", use_container_width=True) 
+    st.markdown(
+        "<div style='font-size:11px;color:#6B7280;text-align:right;"
+        "padding-top:10px'>📄 PDF: Ctrl+P</div>",
+        unsafe_allow_html=True
+    )
 
 st.markdown("<hr>", unsafe_allow_html=True)
 
@@ -315,12 +319,42 @@ std_arr = np.sqrt(np.diag(cov.values))
 # ── Excel export logic ───────────────────────
 buf = io.BytesIO()
 with pd.ExcelWriter(buf, engine='openpyxl') as writer:
+    # Sheet 1: Allocation
     alloc_tmp = pd.DataFrame({
-        L['col_ticker']: selected, L['col_mvp']: [f"{w:.1%}" for w in result['weights']],
-        L['col_ew']: [f"{w:.1%}" for w in w_eq], L['col_ret']: [f"{r:.1%}" for r in mu.values],
-        L['col_vol']: [f"{v:.1%}" for v in std_arr]
+        L['col_ticker']: selected,
+        L['col_mvp']   : [f"{w:.1%}" for w in result['weights']],
+        L['col_ew']    : [f"{w:.1%}" for w in w_eq],
+        L['col_ret']   : [f"{r:.1%}" for r in mu.values],
+        L['col_vol']   : [f"{v:.1%}" for v in std_arr],
     }).sort_values(L['col_mvp'], ascending=False)
     alloc_tmp.to_excel(writer, sheet_name='Allocation', index=False)
+
+    # Sheet 2: Portfolio Metrics
+    pd.DataFrame({
+        'Chỉ số' if L == LANG['vi'] else 'Metric': [
+            L['kpi_ret'], L['kpi_vol'], L['kpi_sharpe'],
+            L['kpi_active'], 'Vol Reduction vs EW'
+        ],
+        L['mvp_lbl']: [
+            f"{result['port_return']:.2%}",
+            f"{result['port_volatility']:.2%}",
+            f"{result['sharpe_ratio']:.3f}",
+            f"{int((result['weights']>0.001).sum())} / {N}",
+            f"{result['improvement_pct']:.1f}%",
+        ],
+        L['ew_lbl']: [
+            f"{eq_stats['port_return']:.2%}",
+            f"{eq_stats['port_volatility']:.2%}",
+            f"{eq_stats['sharpe_ratio']:.3f}",
+            f"{N} / {N}",
+            "—",
+        ],
+    }).to_excel(writer, sheet_name='Metrics', index=False)
+
+    # Sheet 3: Correlation Matrix
+    corr_np = cov.values / np.outer(std_arr, std_arr)
+    corr_df = pd.DataFrame(corr_np.round(4), index=selected, columns=selected)
+    corr_df.to_excel(writer, sheet_name='Correlation')
 buf.seek(0)
 
 with c_excel:
