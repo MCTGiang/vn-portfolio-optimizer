@@ -1,7 +1,14 @@
 # VN Portfolio Optimizer
 
-A smart portfolio optimization system for the Vietnamese stock market,
-built with Modern Portfolio Theory (Markowitz), Ensemble ML, and Risk Management.
+[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://mctgiangproject1.streamlit.app/)
+
+Hệ thống tối ưu hóa danh mục đầu tư theo Modern Portfolio Theory — Minimum Variance Portfolio trên thị trường chứng khoán Việt Nam (VN30).
+
+## 🚀 Live Demo
+
+👉 **[https://mctgiangproject1.streamlit.app/](https://mctgiangproject1.streamlit.app/)**
+
+---
 
 ## Roadmap
 
