@@ -108,7 +108,7 @@ hr {{ margin: 12px 0 20px !important; border-color: {C_BORDER} !important; }}
 
 /* ── Export buttons: sync font size & style ── */
 div[data-testid="stDownloadButton"] button {{
-    font-family: 'Inter', -apple-system, sans-serif !important;
+font-family: 'Inter', -apple-system, sans-serif !important;
     font-size: 14px !important;
     font-weight: 400 !important;
     color: {C_TEXT} !important;
@@ -116,9 +116,19 @@ div[data-testid="stDownloadButton"] button {{
     border: 1px solid {C_BORDER} !important;
     border-radius: 6px !important;
     padding: 5px 12px !important;
-    line-height: 1.6 !important;
+    height: 38px !important; /* Cố định chiều cao */
     white-space: nowrap !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
 }}
+
+div[data-testid="stDownloadButton"] button p {{
+    font-size: 14px !important;
+    line-height: 1 !important;
+    margin: 0 !important;
+}}
+
 div[data-testid="stDownloadButton"] button:hover {{
     border-color: {C_BRAND} !important;
     color: {C_BRAND} !important;
@@ -297,12 +307,12 @@ with c_title:
 
 with c_pdf:
     st.markdown(
-        "<div style='margin-top:4px'>"
+        "<div>"
         "<button onclick='window.print()' style='"
-        "width:100%;padding:6px 12px;font-size:14px;font-weight:400;"
-        "border:1px solid #E5E7EB;border-radius:6px;"
-        "background:#fff;color:#1F2937;cursor:pointer;"
-        "white-space:nowrap;"
+        "width:100%; height:38px; padding:5px 12px; font-size:14px; font-weight:400;"
+        "border:1px solid #E5E7EB; border-radius:6px;"
+        "background:#fff; color:#1F2937; cursor:pointer;"
+        "white-space:nowrap; display:flex; align-items:center; justify-content:center; gap:6px;"
         "font-family:Inter,-apple-system,sans-serif;"
         "'>📄 " + L['exp_pdf'] + "</button></div>",
         unsafe_allow_html=True
