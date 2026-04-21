@@ -14,14 +14,14 @@ import numpy as np
 import io
 import streamlit.components.v1 as components
 
-# Mock data loader for UI testing (if modules are missing)
+# Fallback mock data for UI testing when src modules are unavailable
 try:
     from data_loader import VN30_TICKERS, get_db_summary
     from optimizer import min_variance_portfolio
     from portfolio_metrics import portfolio_stats
 except ImportError:
     VN30_TICKERS = ['VCB','VNM','HPG','FPT','MWG','BID','CTG','KDC','GAS','REE']
-    def get_db_summary(): return pd.DataFrame({'start_date': ['2021-01-04'], 'end_date': ['2026-04-20'], 'rows': [39519]})
+    def get_db_summary(): return pd.DataFrame({'start_date': ['2021-01-01'], 'end_date': ['2026-04-20'], 'rows': [39519]})
     def min_variance_portfolio(tickers):
         n = len(tickers)
         w = np.random.dirichlet(np.ones(n), size=1)[0]
@@ -153,6 +153,34 @@ div[data-testid="stSidebar"] button:has(div:contains("Cập nhật dữ liệu")
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }}
 
+/* 1. Phục hồi màu cho nút Primary (VIE/ENG) */
+div[data-testid="stButton"] button[kind="primary"] {{
+    background-color: #146026 !important;
+    border-color: #146026 !important;
+    color: white !important;
+}}
+div[data-testid="stButton"] button[kind="primary"] p {{
+    color: white !important;
+}}
+
+/* 2. Làm nổi bật nút Cập nhật dữ liệu ở Sidebar */
+div[data-testid="stSidebar"] button:has(p:contains("Cập nhật")) {{
+    background-color: #f4faed !important; /* Nền xanh rất nhạt */
+    border: 1px solid #80c433 !important; /* Viền xanh lime (Màu VCBS) */
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05) !important;
+}}
+div[data-testid="stSidebar"] button:has(p:contains("Cập nhật")) p {{
+    color: #146026 !important; /* Chữ màu xanh đậm thương hiệu */
+    font-weight: 600 !important;
+}}
+div[data-testid="stSidebar"] button:has(p:contains("Cập nhật")):hover {{
+    background-color: #80c433 !important; /* Đổi màu nền khi trỏ chuột */
+    border-color: #80c433 !important;
+}}
+
+div[data-testid="stSidebar"] button:has(p:contains("Cập nhật")):hover p {{
+    color: white !important; /* Chữ trắng khi trỏ chuột */
+}}
 .footer {{ font-size: 11px; color: {C_MUTED}; text-align: center; padding: 16px 0 10px; border-top: 1px solid {C_BORDER}; margin-top: 24px; }}
 </style>
 """, unsafe_allow_html=True)
@@ -194,6 +222,13 @@ LANG = {
         'solver'     : 'Trình giải: scipy SLSQP',
         'rf_main'    : 'Rf = 4.5%',
         'rf_sub'     : '(Lãi suất phi rủi ro tham khảo SBV Việt Nam)',
+        'btn_update'      : 'Cập nhật dữ liệu mới nhất',
+        'status_updating' : 'Đang kết nối API và cập nhật Database...',
+        'status_success'  : 'Cập nhật thành công!',
+        'toast_success'   : 'Dữ liệu đã được làm mới!',
+        'status_err'      : 'Lỗi',
+        'toast_err'       : 'Không thể kết nối với nguồn dữ liệu.',
+        'note_update'     : 'Lưu ý: Quá trình này có thể mất vài phút tùy vào tốc độ API.',
         'footer'     : 'Markowitz (1952) Portfolio Selection · Dữ liệu: VCI qua vnstock3 · github.com/MCTGiang/vn-portfolio-optimizer',
     },
     'en': {
@@ -231,6 +266,13 @@ LANG = {
         'solver'     : 'Solver: scipy SLSQP',
         'rf_main'    : 'Rf = 4.5%',
         'rf_sub'     : '(Risk-free rate - SBV Vietnam)',
+        'btn_update'      : 'Update latest data',
+        'status_updating' : 'Connecting to API and updating Database...',
+        'status_success'  : 'Update successful!',
+        'toast_success'   : 'Data has been refreshed!',
+        'status_err'      : 'Error',
+        'toast_err'       : 'Could not connect to data source.',
+        'note_update'     : 'Note: This process may take a few minutes depending on API speed.',
         'footer'     : 'Markowitz (1952) Portfolio Selection · Data: VCI via vnstock3 · github.com/MCTGiang/vn-portfolio-optimizer',
     },
 }
@@ -238,7 +280,7 @@ LANG = {
 if 'lang' not in st.session_state:
     st.session_state['lang'] = 'vi'
 
-# ── Auto-init DB ───────────────────────────────────────────────────────────────
+# ── DB initialization — must run before any other component ──────────────────
 _DB_PATH = os.path.join(os.path.dirname(__file__), '..', 'data', 'raw', 'portfolio.db')
 
 def _db_is_ready():
@@ -254,6 +296,7 @@ def _db_is_ready():
         return False
 
 if not _db_is_ready():
+    # Show minimal page while fetching data for the first time (e.g. Streamlit Cloud)
     st.set_page_config(page_title="VN Portfolio Optimizer", page_icon="📈", layout="wide")
     st.info("🔄 Đang khởi tạo dữ liệu lần đầu — vui lòng chờ khoảng 3 phút...")
     try:
@@ -269,6 +312,7 @@ if not _db_is_ready():
 with st.sidebar:
     lang_cur = st.session_state['lang']
 
+    # Language toggle — two buttons styled as a pill via CSS
     tb_col1, tb_col2 = st.columns(2)
     with tb_col1:
         if st.button("VIE", key="btn_vi", use_container_width=True, type="primary" if lang_cur == 'vi' else "secondary"):
@@ -281,6 +325,7 @@ with st.sidebar:
 
     L = LANG[st.session_state['lang']]
 
+    # Ticker selection
     st.markdown(f"<div style='font-size:11px;font-weight:700;color:{C_BRAND};text-transform:uppercase;letter-spacing:.05em;margin:16px 0 6px'>{L['cfg']}</div>", unsafe_allow_html=True)
     selected = st.multiselect(L['pick'], options=VN30_TICKERS, default=['VCB','VNM','HPG','FPT','MWG','BID','CTG','KDC','GAS','REE'], label_visibility="collapsed")
     st.caption(L['pick'])
@@ -303,27 +348,31 @@ with st.sidebar:
         """, unsafe_allow_html=True)
     except Exception: pass
 
+    # Manual data refresh button
     st.markdown(f"<div style='margin-top:12px'></div>", unsafe_allow_html=True)
-    # Tạo nút cập nhật thủ công
-    if st.sidebar.button("🔄 Cập nhật dữ liệu mới nhất", use_container_width=True):
-        with st.status("🚀 Đang kết nối API và cập nhật Database...", expanded=True) as status:
+    if st.sidebar.button(f"🔄 {L['btn_update']}", use_container_width=True):
+        with st.status(f"🚀 {L['status_updating']}", expanded=True) as status:
             try:
                 from data_loader import update_db
-                # Gọi hàm update từ ngày cuối cùng trong DB hoặc một mốc cố định
                 update_db(start='2021-01-01') 
                 
-                # QUAN TRỌNG: Xóa cache để dashboard load lại dữ liệu mới vừa tải về
                 st.cache_data.clear()
                 
-                status.update(label="✅ Cập nhật thành công!", state="complete", expanded=False)
-                st.toast("Dữ liệu đã được làm mới!", icon="✅")
+                status.update(label=f"✅ {L['status_success']}", state="complete", expanded=False)
+                st.toast(L['toast_success'], icon="✅")
                 st.rerun()
             except Exception as e:
-                status.update(label=f"❌ Lỗi: {str(e)}", state="error")
-                st.sidebar.error("Không thể kết nối với nguồn dữ liệu.")
+                status.update(label=f"❌ {L['status_err']}: {str(e)}", state="error")
+                st.sidebar.error(L['toast_err'])
 
-    st.caption("Lưu ý: Quá trình này có thể mất vài phút tùy vào tốc độ API.")
+    st.markdown(
+        f'<div style="font-size:12px; opacity:0.85; color:#6B7280; margin-top:4px; line-height:1.4;">'
+        f'{L["note_update"]}'
+        f'</div>', 
+        unsafe_allow_html=True
+    )
 
+    # Model info
     st.markdown(f"<div style='font-size:11px;font-weight:700;color:{C_BRAND};text-transform:uppercase;letter-spacing:.05em;margin:16px 0 6px'>{L['model']}</div>", unsafe_allow_html=True)
     st.markdown(f"""
     <div style="font-size:14px;color:{C_MUTED};line-height:1.8;">
@@ -345,7 +394,7 @@ with c_title:
     st.markdown(f"<div class='header-glossary'>{L['glossary']}</div>", unsafe_allow_html=True)
 
 with c_pdf:
-    # Sử dụng button thật của Streamlit
+    # PDF export via browser print dialog (window.parent.print for iframe context)
     if st.button("📄 " + L['exp_pdf'], key="btn_pdf", use_container_width=True):
         # Tạo một iframe ẩn kích thước 0x0 để chạy Javascript tác động lên cửa sổ cha
         components.html(
@@ -355,12 +404,12 @@ with c_pdf:
 
 st.markdown("<hr>", unsafe_allow_html=True)
 
-# ── Guard ─────────────────────────────────────────────────────────────────────
+# ── Guard — require at least 2 tickers ───────────────────────────────────────
 if len(selected) < 2:
     st.warning(L['warn2'])
     st.stop()
 
-# ── Optimizer ─────────────────────────────────────────────────────────────────
+# ── Portfolio optimizer (cached, invalidates after 1 hour) ───────────────────
 @st.cache_data(ttl=3600, show_spinner=False)
 def run_optimizer(tickers_tuple): return min_variance_portfolio(list(tickers_tuple))
 
@@ -369,6 +418,7 @@ with st.spinner(L['spinning']):
         result = run_optimizer(tuple(sorted(selected)))
     except ValueError as e:
         if 'not in DB' in str(e):
+            # DB was wiped by cloud container restart — reinitialize automatically
             st.cache_data.clear()
             with st.spinner("🔄 Dữ liệu bị reset — đang tải lại (~3 phút)..."):
                 try:
@@ -386,6 +436,7 @@ with st.spinner(L['spinning']):
         st.error(f"❌ {e}")
         st.stop()
 
+# ── Derived variables ─────────────────────────────────────────────────────────
 N = len(selected)
 w_eq = np.array([1.0 / N] * N)
 mu = result['mu']
@@ -393,9 +444,10 @@ cov = result['cov']
 eq_stats = portfolio_stats(w_eq, mu, cov)
 std_arr = np.sqrt(np.diag(cov.values))
 
-# ── Excel export ───────────────────────────────────────────────────────────────
+# ── Excel export — 3 sheets: Allocation, Metrics, Correlation ─────────────────
 buf = io.BytesIO()
 with pd.ExcelWriter(buf, engine='openpyxl') as writer:
+    # Sheet 1: per-ticker allocation comparison
     alloc_tmp = pd.DataFrame({
         L['col_ticker']: selected,
         L['col_mvp']   : [f"{w:.1%}" for w in result['weights']],
@@ -405,19 +457,18 @@ with pd.ExcelWriter(buf, engine='openpyxl') as writer:
     }).sort_values(L['col_mvp'], ascending=False)
     alloc_tmp.to_excel(writer, sheet_name='Allocation', index=False)
 
+    # Sheet 2: portfolio-level metrics vs equal weights
+    metric_label = 'Chỉ số' if st.session_state['lang'] == 'vi' else 'Metric'
     pd.DataFrame({
-        'Chỉ số' if st.session_state['lang'] == 'vi' else 'Metric': [
-            L['kpi_ret'], L['kpi_vol'], L['kpi_sharpe'],
-            L['kpi_active'], 'Vol Reduction vs EW'
-        ],
-        L['mvp_lbl']: [
+        metric_label: [L['kpi_ret'], L['kpi_vol'], L['kpi_sharpe'], L['kpi_active'], 'Vol Reduction vs EW'],
+        L['mvp_lbl'] : [
             f"{result['port_return']:.2%}",
             f"{result['port_volatility']:.2%}",
             f"{result['sharpe_ratio']:.3f}",
-            f"{int((result['weights']>0.001).sum())} / {N}",
+            f"{int((result['weights'] > 0.001).sum())} / {N}",
             f"{result['improvement_pct']:.1f}%",
         ],
-        L['ew_lbl']: [
+        L['ew_lbl']  : [
             f"{eq_stats['port_return']:.2%}",
             f"{eq_stats['port_volatility']:.2%}",
             f"{eq_stats['sharpe_ratio']:.3f}",
@@ -425,6 +476,7 @@ with pd.ExcelWriter(buf, engine='openpyxl') as writer:
         ],
     }).to_excel(writer, sheet_name='Metrics', index=False)
 
+    # Sheet 3: pairwise correlation matrix
     corr_np = cov.values / np.outer(std_arr, std_arr)
     corr_df_xl = pd.DataFrame(corr_np.round(4), index=selected, columns=selected)
     corr_df_xl.to_excel(writer, sheet_name='Correlation')
@@ -449,6 +501,7 @@ def kpi(label, val, delta, pct=True, decimals=2, invert=False):
     if delta == 0: css = "neut"
     return f"<div class='kpi-wrap'><div class='kpi-label'>{label}</div><div class='kpi-value'>{v_str}</div><div class='kpi-delta {css}'>{arrow} {d_str} {L['vs_ew']}</div></div>"
 
+# ── KPI row ───────────────────────────────────────────────────────────────────
 c1, c2, c3, c4 = st.columns(4)
 c1.markdown(kpi(L['kpi_ret'],    result['port_return'],     result['port_return']     - eq_stats['port_return']),                  unsafe_allow_html=True)
 c2.markdown(kpi(L['kpi_vol'],    result['port_volatility'], result['port_volatility'] - eq_stats['port_volatility'], invert=True), unsafe_allow_html=True)
@@ -457,9 +510,10 @@ c4.markdown(f"<div class='kpi-wrap'><div class='kpi-label'>{L['kpi_active']}</di
 
 st.markdown("<div style='height:24px'></div>", unsafe_allow_html=True)
 
-# ── Charts ────────────────────────────────────────────────────────────────────
+# ── Charts row ────────────────────────────────────────────────────────────────────
 col_pie, col_bar = st.columns(2)
 
+# Donut chart — allocation (tickers < 3% grouped into "Others")
 with col_pie:
     st.markdown(f"<div class='sec-hdr'>{L['sec_alloc']}</div>", unsafe_allow_html=True)
     mask = result['weights'] >= 0.03
@@ -484,6 +538,7 @@ with col_pie:
     fig_pie.update_traces(hovertemplate='<b>%{label}</b><br>Tỷ trọng: %{percent:.1%}<extra></extra>')
     st.plotly_chart(fig_pie, use_container_width=True, config={'displayModeBar': False})
 
+# Grouped bar chart — MVP vs Equal Weights on Return, Volatility, Sharpe
 with col_bar:
     st.markdown(f"<div class='sec-hdr'>{L['sec_cmp']}</div>", unsafe_allow_html=True)
     m_labels = [L['kpi_ret'], L['kpi_vol'], L['kpi_sharpe']]
@@ -512,7 +567,8 @@ with col_bar:
     )
     st.plotly_chart(fig_bar, use_container_width=True, config={'displayModeBar': False})
 
-# ── Heatmap ───────────────────────────────────────────────────────────────────
+# ── Correlation heatmap ───────────────────────────────────────────────────────
+# Color scale: dark green (low) → yellow (mid) → orange-red (high = needs attention)
 st.markdown(f"<div style='margin-top:12px'><div class='sec-hdr'>{L['sec_heat']}</div></div>", unsafe_allow_html=True)
 corr_df = pd.DataFrame((cov.values / np.outer(std_arr, std_arr)).round(2), index=selected, columns=selected)
 heat_scale = [[0.0, C_BRAND], [0.3, "#52B788"], [0.55, "#FFE08A"], [0.75, "#FFA04A"], [1.0, "#DC2626"]]
