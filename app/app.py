@@ -238,7 +238,7 @@ if not _db_is_ready():
     try:
         os.makedirs(os.path.dirname(_DB_PATH), exist_ok=True)
         from data_loader import update_db
-        update_db(start='2022-01-01')
+        update_db(start='2021-01-01')
         st.rerun()
     except Exception as e:
         st.error(f"❌ Không tải được dữ liệu: {e}")
