@@ -276,6 +276,20 @@ with c_pdf:
 
 st.markdown("<hr>", unsafe_allow_html=True)
 
+# ── Auto-init DB nếu chưa có (Streamlit Cloud) ────────────────────────────────
+_DB_PATH = os.path.join(os.path.dirname(__file__), '..', 'data', 'raw', 'portfolio.db')
+if not os.path.exists(_DB_PATH):
+    with st.spinner("🔄 Đang khởi tạo dữ liệu lần đầu (~3 phút)..."):
+        try:
+            os.makedirs(os.path.dirname(_DB_PATH), exist_ok=True)
+            from data_loader import update_db
+            update_db(start='2022-01-01')
+            st.success("✅ Dữ liệu sẵn sàng!")
+            st.rerun()
+        except Exception as e:
+            st.error(f"❌ Không tải được dữ liệu: {e}")
+            st.stop()
+
 # ── Guard ─────────────────────────────────────────────────────────────────────
 if len(selected) < 2:
     st.warning(L['warn2'])
