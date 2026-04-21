@@ -158,8 +158,8 @@ LANG = {
         'col_ew'     : 'Tỷ trọng Đồng đều (%)',
         'col_ret'    : 'Lợi nhuận (%)',
         'col_vol'    : 'Rủi ro (%)',
-        'exp_pdf'    : 'Xuất PDF',
-        'exp_xlsx'   : 'Xuất Excel',
+        'exp_pdf'    : 'PDF',
+        'exp_xlsx'   : 'Excel',
         'glossary'   : '<b>MVP</b> (Minimum Variance Portfolio) - Danh mục rủi ro tối thiểu<br><b>Đồng đều</b> (Equal Weights) - Danh mục chia đều tỷ trọng.',
         'data_scope1': '30 mã cổ phiếu thuộc rổ VN30',
         'data_scope2': '(Tham chiếu tại {mm_yyyy})',
@@ -195,8 +195,8 @@ LANG = {
         'col_ew'     : 'EW Weight (%)',
         'col_ret'    : 'Exp. Return (%)',
         'col_vol'    : 'Volatility (%)',
-        'exp_pdf'    : 'Export PDF',
-        'exp_xlsx'   : 'Export Excel',
+        'exp_pdf'    : 'PDF',
+        'exp_xlsx'   : 'Excel',
         'glossary'   : '<b>MVP</b> - Minimum Variance Portfolio<br><b>Equal Weights</b> - Equally weighted portfolio.',
         'data_scope1': '30 VN30 tickers',
         'data_scope2': '(Reference at {mm_yyyy})',
@@ -298,7 +298,7 @@ with st.sidebar:
     """, unsafe_allow_html=True)
 
 # ── Header row ────────────────────────────────────────────────────────────────
-c_title, c_space, c_pdf, c_excel = st.columns([5, 2, 1.5, 1.5])
+c_title, c_pdf, c_excel = st.columns([5, 1.8, 1.8])
 
 with c_title:
     st.markdown(f"<h1 class='page-title'>{L['title']}</h1>", unsafe_allow_html=True)
@@ -306,8 +306,14 @@ with c_title:
 
 with c_pdf:
     st.markdown(
-        "<div style='font-size:11px;color:#6B7280;text-align:right;"
-        "padding-top:10px'>📄 PDF: Ctrl+P</div>",
+        "<div style='margin-top:4px'>"
+        "<button onclick='window.print()' style='"
+        "width:100%;padding:5px 8px;font-size:13px;font-weight:500;"
+        "border:1px solid #E5E7EB;border-radius:6px;"
+        "background:#fff;color:#1F2937;cursor:pointer;"
+        "white-space:nowrap;"
+        "font-family:Inter,sans-serif;"
+        "'>📄 " + L['exp_pdf'] + "</button></div>",
         unsafe_allow_html=True
     )
 
@@ -438,7 +444,8 @@ with col_bar:
     
     fig_bar.add_trace(go.Bar(name=L['mvp_lbl'], x=m_labels, y=m_vals, marker_color=C_BRAND, text=[f"{v:.1%}" if i<2 else f"{v:.3f}" for i,v in enumerate(m_vals)], textposition='outside'))
     fig_bar.add_trace(go.Bar(name=L['ew_lbl'], x=m_labels, y=e_vals, marker_color='#E5E7EB', text=[f"{v:.1%}" if i<2 else f"{v:.3f}" for i,v in enumerate(e_vals)], textposition='outside'))
-    fig_bar.update_layout(barmode='group', margin=dict(t=10, b=10, l=10, r=10), height=320, legend=dict(orientation='h', y=-0.15), yaxis=dict(visible=False, range=[0, max(max(m_vals), max(e_vals)) * 1.3]), paper_bgcolor='rgba(0,0,0,0)')
+    fig_bar.update_layout(barmode='group', margin=dict(t=10, b=10, l=10, r=10), height=340, legend=dict(orientation='h', y=-0.15), yaxis=dict(visible=False), paper_bgcolor='rgba(0,0,0,0)',uniformtext_minsize=10,
+uniformtext_mode='hide')
     st.plotly_chart(fig_bar, use_container_width=True, config={'displayModeBar': False})
 
 # ── Heatmap ───────────────────────────────────────────────────────────────────
