@@ -329,7 +329,24 @@ if len(selected) < 2:
 def run_optimizer(tickers_tuple): return min_variance_portfolio(list(tickers_tuple))
 
 with st.spinner(L['spinning']):
-    try: result = run_optimizer(tuple(sorted(selected)))
+    try:
+        result = run_optimizer(tuple(sorted(selected)))
+    except ValueError as e:
+        if 'not in DB' in str(e):
+            # DB bị reset — tự động reinit
+            st.cache_data.clear()
+            with st.spinner("🔄 Dữ liệu bị reset — đang tải lại (~3 phút)..."):
+                try:
+                    os.makedirs(os.path.dirname(_DB_PATH), exist_ok=True)
+                    from data_loader import update_db
+                    update_db(start='2021-01-01')
+                    st.rerun()
+                except Exception as reinit_err:
+                    st.error(f"❌ Không tải được dữ liệu: {reinit_err}")
+                    st.stop()
+        else:
+            st.error(f"❌ {e}")
+            st.stop()
     except Exception as e:
         st.error(f"❌ {e}")
         st.stop()
