@@ -12,6 +12,7 @@ import plotly.graph_objects as go
 import pandas as pd
 import numpy as np
 import io
+import streamlit.components.v1 as components
 
 # Mock data loader for UI testing (if modules are missing)
 try:
@@ -106,33 +107,36 @@ div[data-testid="stDataFrame"] *[role="columnheader"] > div {{
 
 hr {{ margin: 12px 0 20px !important; border-color: {C_BORDER} !important; }}
 
-/* ── Export buttons: sync font size & style ── */
-div[data-testid="stDownloadButton"] button {{
-font-family: 'Inter', -apple-system, sans-serif !important;
+/* Gộp chung CSS cho cả nút Print (stButton) và nút Excel (stDownloadButton) */
+div[data-testid="stDownloadButton"] button, 
+div[data-testid="stButton"] button {{
+    font-family: 'Inter', -apple-system, sans-serif !important;
     font-size: 14px !important;
     font-weight: 400 !important;
-    color: {C_TEXT} !important;
-    background: {C_BG} !important;
-    border: 1px solid {C_BORDER} !important;
+    color: #1F2937 !important;
+    background: #FFFFFF !important;
+    border: 1px solid #E5E7EB !important;
     border-radius: 6px !important;
     padding: 5px 12px !important;
-    height: 38px !important; /* Cố định chiều cao */
+    height: 38px !important;
     white-space: nowrap !important;
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
 }}
 
-div[data-testid="stDownloadButton"] button p {{
+div[data-testid="stDownloadButton"] button p,
+div[data-testid="stButton"] button p {{
     font-size: 14px !important;
     line-height: 1 !important;
     margin: 0 !important;
 }}
 
-div[data-testid="stDownloadButton"] button:hover {{
-    border-color: {C_BRAND} !important;
-    color: {C_BRAND} !important;
-    background: {C_BG} !important;
+div[data-testid="stDownloadButton"] button:hover,
+div[data-testid="stButton"] button:hover {{
+    border-color: #146026 !important; /* Màu xanh thương hiệu */
+    color: #146026 !important;
+    background: #FFFFFF !important;
 }}
 
 div[data-testid="stSidebar"] button:has(div:contains("Cập nhật dữ liệu")) {{
@@ -341,17 +345,13 @@ with c_title:
     st.markdown(f"<div class='header-glossary'>{L['glossary']}</div>", unsafe_allow_html=True)
 
 with c_pdf:
-    st.markdown(
-        "<div>"
-        "<button onclick='window.print()' style='"
-        "width:100%; height:38px; padding:5px 12px; font-size:14px; font-weight:400;"
-        "border:1px solid #E5E7EB; border-radius:6px;"
-        "background:#fff; color:#1F2937; cursor:pointer;"
-        "white-space:nowrap; display:flex; align-items:center; justify-content:center; gap:6px;"
-        "font-family:Inter,-apple-system,sans-serif;"
-        "'>📄 " + L['exp_pdf'] + "</button></div>",
-        unsafe_allow_html=True
-    )
+    # Sử dụng button thật của Streamlit
+    if st.button("📄 " + L['exp_pdf'], key="btn_pdf", use_container_width=True):
+        # Tạo một iframe ẩn kích thước 0x0 để chạy Javascript tác động lên cửa sổ cha
+        components.html(
+            "<script>window.parent.print();</script>",
+            height=0, width=0
+        )
 
 st.markdown("<hr>", unsafe_allow_html=True)
 
