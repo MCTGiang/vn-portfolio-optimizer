@@ -213,8 +213,27 @@ if 'lang' not in st.session_state:
 
 # ── Auto-init DB (phải chạy trước mọi thứ khác) ───────────────────────────────
 _DB_PATH = os.path.join(os.path.dirname(__file__), '..', 'data', 'raw', 'portfolio.db')
-if not os.path.exists(_DB_PATH):
-    st.set_page_config(page_title="VN Portfolio Optimizer", page_icon="📈", layout="wide")
+
+def _db_is_ready():
+    """Check DB tồn tại VÀ có data thực sự."""
+    if not os.path.exists(_DB_PATH):
+        return False
+    try:
+        import sqlite3
+        con = sqlite3.connect(_DB_PATH)
+        count = con.execute(
+            "SELECT COUNT(*) FROM Stock_Prices"
+        ).fetchone()[0]
+        con.close()
+        return count > 1000
+    except Exception:
+        return False
+
+if not _db_is_ready():
+    st.set_page_config(
+        page_title="VN Portfolio Optimizer",
+        page_icon="📈", layout="wide"
+    )
     st.info("🔄 Đang khởi tạo dữ liệu lần đầu — vui lòng chờ khoảng 3 phút...")
     try:
         os.makedirs(os.path.dirname(_DB_PATH), exist_ok=True)
