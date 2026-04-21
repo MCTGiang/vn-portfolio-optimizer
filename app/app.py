@@ -135,6 +135,20 @@ div[data-testid="stDownloadButton"] button:hover {{
     background: {C_BG} !important;
 }}
 
+div[data-testid="stSidebar"] button:has(div:contains("Cập nhật dữ liệu")) {{
+    background-color: transparent !important;
+    border: 1px solid #146026 !important;
+    color: #146026 !important;
+    font-weight: 600 !important;
+    transition: all 0.3s ease;
+}}
+
+div[data-testid="stSidebar"] button:has(div:contains("Cập nhật dữ liệu")):hover {{
+    background-color: #146026 !important;
+    color: white !important;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}}
+
 .footer {{ font-size: 11px; color: {C_MUTED}; text-align: center; padding: 16px 0 10px; border-top: 1px solid {C_BORDER}; margin-top: 24px; }}
 </style>
 """, unsafe_allow_html=True)
@@ -284,6 +298,27 @@ with st.sidebar:
         </div>
         """, unsafe_allow_html=True)
     except Exception: pass
+
+    st.markdown(f"<div style='margin-top:12px'></div>", unsafe_allow_html=True)
+    # Tạo nút cập nhật thủ công
+    if st.sidebar.button("🔄 Cập nhật dữ liệu mới nhất", use_container_width=True):
+        with st.status("🚀 Đang kết nối API và cập nhật Database...", expanded=True) as status:
+            try:
+                from data_loader import update_db
+                # Gọi hàm update từ ngày cuối cùng trong DB hoặc một mốc cố định
+                update_db(start='2021-01-01') 
+                
+                # QUAN TRỌNG: Xóa cache để dashboard load lại dữ liệu mới vừa tải về
+                st.cache_data.clear()
+                
+                status.update(label="✅ Cập nhật thành công!", state="complete", expanded=False)
+                st.toast("Dữ liệu đã được làm mới!", icon="✅")
+                st.rerun()
+            except Exception as e:
+                status.update(label=f"❌ Lỗi: {str(e)}", state="error")
+                st.sidebar.error("Không thể kết nối với nguồn dữ liệu.")
+
+    st.caption("Lưu ý: Quá trình này có thể mất vài phút tùy vào tốc độ API.")
 
     st.markdown(f"<div style='font-size:11px;font-weight:700;color:{C_BRAND};text-transform:uppercase;letter-spacing:.05em;margin:16px 0 6px'>{L['model']}</div>", unsafe_allow_html=True)
     st.markdown(f"""
