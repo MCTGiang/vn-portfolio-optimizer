@@ -159,7 +159,7 @@ LANG = {
         'col_ret'    : 'Lợi nhuận (%)',
         'col_vol'    : 'Rủi ro (%)',
         'exp_pdf'    : 'Xuất PDF',
-        'exp_xlsx'   : 'XExcel',
+        'exp_xlsx'   : 'Xuất Excel',
         'glossary'   : '<b>MVP</b> (Minimum Variance Portfolio) - Danh mục rủi ro tối thiểu<br><b>Đồng đều</b> (Equal Weights) - Danh mục chia đều tỷ trọng.',
         'data_scope1': '30 mã cổ phiếu thuộc rổ VN30',
         'data_scope2': '(Tham chiếu tại {mm_yyyy})',
@@ -308,12 +308,20 @@ with c_pdf:
     st.markdown(
         "<div style='margin-top:4px'>"
         "<button onclick='window.print()' style='"
-        "width:100%;padding:5px 8px;font-size:13px;font-weight:500;"
+        "width:100%;padding:5px 12px;font-size:14px;font-weight:400;"
         "border:1px solid #E5E7EB;border-radius:6px;"
         "background:#fff;color:#1F2937;cursor:pointer;"
-        "white-space:nowrap;"
-        "font-family:Inter,sans-serif;"
-        "'>📄 " + L['exp_pdf'] + "</button></div>",
+        "white-space:nowrap;line-height:1.6;"
+        "font-family:Inter,sans-serif;display:flex;align-items:center;"
+        "justify-content:center;gap:6px;"
+        "'>"
+        "<svg width='16' height='16' viewBox='0 0 16 16' fill='none' style='flex-shrink:0'>"
+        "<path d='M4 0h6l4 4v11a1 1 0 01-1 1H3a1 1 0 01-1-1V1a1 1 0 011-1z' fill='#E5E7EB' stroke='#9CA3AF' stroke-width='0.8'/>"
+        "<path d='M10 0v4h4' fill='none' stroke='#9CA3AF' stroke-width='0.8'/>"
+        "<text x='3' y='12' font-size='5' font-weight='700' fill='#DC2626' font-family='Inter,sans-serif'>PDF</text>"
+        "</svg>"
+        + L['exp_pdf'] +
+        "</button></div>",
         unsafe_allow_html=True
     )
 
