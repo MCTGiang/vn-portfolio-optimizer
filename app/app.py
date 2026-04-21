@@ -109,7 +109,7 @@ hr {{ margin: 12px 0 20px !important; border-color: {C_BORDER} !important; }}
 /* ── Export buttons: sync font size & style ── */
 div[data-testid="stDownloadButton"] button {{
     font-family: 'Inter', -apple-system, sans-serif !important;
-    font-size: 13px !important;
+    font-size: 14px !important;
     font-weight: 400 !important;
     color: {C_TEXT} !important;
     background: {C_BG} !important;
@@ -296,24 +296,15 @@ with c_title:
     st.markdown(f"<div class='header-glossary'>{L['glossary']}</div>", unsafe_allow_html=True)
 
 with c_pdf:
-    # PDF button — same visual weight as Excel download button
     st.markdown(
         "<div style='margin-top:4px'>"
         "<button onclick='window.print()' style='"
-        "width:100%;padding:5px 12px;font-size:13px;font-weight:400;"
+        "width:100%;padding:6px 12px;font-size:14px;font-weight:400;"
         "border:1px solid #E5E7EB;border-radius:6px;"
         "background:#fff;color:#1F2937;cursor:pointer;"
-        "white-space:nowrap;line-height:1.6;"
+        "white-space:nowrap;"
         "font-family:Inter,-apple-system,sans-serif;"
-        "display:flex;align-items:center;justify-content:center;gap:6px;"
-        "'>"
-        "<svg width='14' height='14' viewBox='0 0 16 16' fill='none' style='flex-shrink:0;margin-bottom:1px'>"
-        "<path d='M4 0h6l4 4v11a1 1 0 01-1 1H3a1 1 0 01-1-1V1a1 1 0 011-1z' fill='#F3F4F6' stroke='#9CA3AF' stroke-width='1'/>"
-        "<path d='M10 0v4h4' fill='none' stroke='#9CA3AF' stroke-width='1'/>"
-        "<text x='2.5' y='12' font-size='5.5' font-weight='700' fill='#DC2626' font-family='Arial,sans-serif'>PDF</text>"
-        "</svg>"
-        + L['exp_pdf'] +
-        "</button></div>",
+        "'>📄 " + L['exp_pdf'] + "</button></div>",
         unsafe_allow_html=True
     )
 
