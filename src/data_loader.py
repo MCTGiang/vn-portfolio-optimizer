@@ -56,14 +56,11 @@ def create_table() -> None:
 def fetch_ticker_vci(ticker: str, start: str, end: str) -> pd.DataFrame:
     """
     Fetch OHLCV from VCI via vnstock.
-    Prices in VND/1000 (e.g. VCB = 58.77 means 58,770 VND).
-    Exact date range, no adjusted prices.
     """
     try:
-        from vnstock.explorer.vci.quote import Quote as VCIQuote
-        q  = VCIQuote(symbol=ticker, show_log=False)
-        df = q.history(start=start, end=end, interval='1D')
-
+        from vnstock import Vnstock
+        stock = Vnstock().stock(symbol=ticker, source='VCI')
+        df = stock.quote.history(start=start, end=end, interval='1D')
         if df.empty:
             return pd.DataFrame()
 
