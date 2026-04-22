@@ -217,8 +217,8 @@ LANG = {
         'exp_pdf'    : 'Xuất PDF',
         'exp_xlsx'   : 'Xuất Excel',
         'glossary'   : '<b>MVP</b> (Minimum Variance Portfolio) - Danh mục rủi ro tối thiểu<br><b>Đồng đều</b> (Equal Weights) - Danh mục chia đều tỷ trọng.',
-        'data_scope1': '30 mã cổ phiếu thuộc rổ VN30',
-        'data_scope2': '(Tham chiếu tại {mm_yyyy})',
+        'data_scope1': '29 mã cổ phiếu thuộc rổ VN30',
+        'data_scope2': '(Tham chiếu tại 04/26/2026 - Loại VPL do mới niêm yết 2025)',
         'source'     : 'Nguồn: VCI',
         'solver'     : 'Trình giải: scipy SLSQP',
         'rf_main'    : 'Rf = 4.5%',
@@ -262,7 +262,7 @@ LANG = {
         'exp_xlsx'   : 'Export Excel',
         'glossary'   : '<b>MVP</b> - Minimum Variance Portfolio<br><b>Equal Weights</b> - Equally weighted portfolio.',
         'data_scope1': '30 VN30 tickers',
-        'data_scope2': '(Reference at {mm_yyyy})',
+        'data_scope2': '(Reference at 04-2026 - Excl. VPL listed in 2025)',
         'source'     : 'Source: VCI',
         'solver'     : 'Solver: scipy SLSQP',
         'rf_main'    : 'Rf = 4.5%',
@@ -340,7 +340,7 @@ with st.sidebar:
         st.caption(f"📅 {summary['start_date'].min()} → {end_date_str}")
         st.markdown(f"""
         <div style="font-size:14px;color:{C_MUTED};margin-top:4px;display:flex;align-items:flex-start;gap:6px;">
-            <div style="margin-top:-2px;font-size:14px;">🗂</div>
+            <div style="margin-top:-2px;font-size:14px;">📊</div>
             <div style="line-height:1.4;">
                 {L['data_scope1']}<br>
                 <span style="font-size:12px;opacity:0.85;">{L['data_scope2'].format(mm_yyyy=mm_yyyy)}</span>

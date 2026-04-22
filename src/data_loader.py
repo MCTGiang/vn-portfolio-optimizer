@@ -22,7 +22,7 @@ VN30_TICKERS = [
     'MBB', 'MSN', 'MWG', 'PLX', 'SAB',
     'SHB', 'SSB', 'SSI', 'STB', 'TCB',
     'TPB', 'VCB', 'VHM', 'VIB', 'VIC',
-    'VJC', 'VNM', 'VPB', 'VPL', 'VRE',
+    'VJC', 'VNM', 'VPB', 'VRE',
 ]
 
 # ── Database helpers ───────────────────────────────────────────────────────────
