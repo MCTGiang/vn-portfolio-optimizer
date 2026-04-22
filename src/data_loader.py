@@ -15,7 +15,7 @@ from datetime import datetime
 
 DB_PATH = os.path.join(os.path.dirname(__file__), '..', 'data', 'raw', 'portfolio.db')
 
-# Update VN30 21/04/2026
+# Update VN30 21/04/2026 - Remove VPL due to new listed date 13-May-2025 can cause Cov matrix error in optimizer
 VN30_TICKERS = [
     'ACB', 'BID', 'CTG', 'DGC', 'FPT',
     'GAS', 'GVR', 'HDB', 'HPG', 'LPB',
