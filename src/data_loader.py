@@ -62,6 +62,7 @@ def fetch_ticker_vci(ticker: str, start: str, end: str) -> pd.DataFrame:
         stock = Vnstock().stock(symbol=ticker, source='VCI')
         df = stock.quote.history(start=start, end=end, interval='1D')
         if df.empty:
+            print(f"  ⚠️  vnstock trả về rỗng cho {ticker} (Nguồn: VCI)")
             return pd.DataFrame()
 
         out = pd.DataFrame({
@@ -77,7 +78,9 @@ def fetch_ticker_vci(ticker: str, start: str, end: str) -> pd.DataFrame:
         return out
 
     except Exception as e:
-        print(f"  ⚠️  VCI error [{ticker}]: {type(e).__name__}: {str(e)[:80]}")
+        import traceback
+        print(f"  ⚠️  LỖI NGHIÊM TRỌNG TỪ VNSTOCK [{ticker}]:")
+        traceback.print_exc()
         return pd.DataFrame()
 
 
