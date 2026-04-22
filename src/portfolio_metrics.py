@@ -176,8 +176,9 @@ def display_metrics(tickers: list,
 # ── Entry point ────────────────────────────────────────────────────────────────
 
 if __name__ == '__main__':
+    from data_loader import get_db_summary
     START = '2021-01-01'
-    END   = '2026-04-08'
+    END   = get_db_summary()['end_date'].max()
     N     = len(VN30_TICKERS)
 
     print("Computing expected returns and covariance matrix...")

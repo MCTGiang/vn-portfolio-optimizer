@@ -15,27 +15,14 @@ from datetime import datetime
 
 DB_PATH = os.path.join(os.path.dirname(__file__), '..', 'data', 'raw', 'portfolio.db')
 
+# Update VN30 21/04/2026
 VN30_TICKERS = [
-    # Banks (14 mã)
-    'VCB', 'BID', 'CTG', 'TCB', 'MBB',
-    'VPB', 'ACB', 'HDB', 'STB', 'SHB',
-    'LPB', 'OCB', 'MSB', 'EIB',
-    # Real estate
-    'VIC', 'VHM', 'VRE',
-    # Technology
-    'FPT',
-    # Consumer
-    'VNM', 'MWG', 'SAB',
-    # Energy / Oil & Gas
-    'GAS', 'PLX',
-    # Steel / Materials
-    'HPG',
-    # Insurance
-    'BVH',
-    # Logistics / Aviation
-    'HVN', 'GMD',
-    # Others
-    'PDR', 'KDC', 'REE'
+    'ACB', 'BID', 'CTG', 'DGC', 'FPT',
+    'GAS', 'GVR', 'HDB', 'HPG', 'LPB',
+    'MBB', 'MSN', 'MWG', 'PLX', 'SAB',
+    'SHB', 'SSB', 'SSI', 'STB', 'TCB',
+    'TPB', 'VCB', 'VHM', 'VIB', 'VIC',
+    'VJC', 'VNM', 'VPB', 'VPL', 'VRE',
 ]
 
 # ── Database helpers ───────────────────────────────────────────────────────────

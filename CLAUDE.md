@@ -44,18 +44,28 @@ Raw data (`data/raw/`), processed data (`data/processed/`), model artifacts (`*.
 - Visualization: `streamlit`, `plotly`
 - ML (Phase 2+): `scikit-learn`, `xgboost`, `tensorflow`
 
-## Current Status — updated 08/04/2026
+## Current Status — updated 21/04/2026
 
-**Week 2: IN PROGRESS** — features.py committed; Excel verification + plot remaining
+**Week 5: COMPLETE** — Streamlit dashboard live at mctgiangproject1.streamlit.app; report Chapter 2 drafted
 
 ### Completed src/ files
-- `src/data_loader.py` — Full ETL: VCIQuote primary, yfinance fallback, SQLite insert/load, 30 VN30 tickers, 39,189 rows (2021–2026)
+- `src/data_loader.py` — Full ETL: VCIQuote primary, yfinance fallback, SQLite insert/load; VN30 updated Q1/2026 (VPL in, BCM out), 30 tickers current as of 21/04/2026
 - `src/update_db.py` — Standalone CLI: `python src/update_db.py [--tickers X Y Z] [--start YYYY-MM-DD] [--replace]`
-- `src/features.py` — Committed 08/04: calc_returns(), calc_log_returns(), build_returns_matrix(method='simple'|'log'), annualized_return(), annualized_volatility(), ticker_stats(), all_ticker_stats(); TRADING_DAYS=252
+- `src/features.py` — calc_returns(), calc_log_returns(), build_returns_matrix(method='simple'|'log'), annualized_return(), annualized_volatility(), ticker_stats(), all_ticker_stats(); TRADING_DAYS=252; verified vs Excel ✅
+- `src/portfolio_metrics.py` — expected_returns(), covariance_matrix(), correlation_matrix(), portfolio_stats(weights, μ, Σ), display_metrics(); end date auto-read from DB ✅
+- `src/optimizer.py` — portfolio_variance(), min_variance_portfolio(), display_portfolio(), CLI; SLSQP solver; RISK_FREE_RATE=0.045; 30-ticker MVP: 33.9% Vol reduction ✅
 
-### Next: Finish Week 2 (Fri 10/04)
-- Spot-check: verify VCB annualized return for 2024 vs Excel (~20m)
-- Plot return distribution histogram per ticker — identify most volatile stock (~30m)
+### Completed app/ files
+- `app/app.py` — Production Streamlit dashboard: green brand palette (#146026), Inter font, HTML KPI cards, donut chart, MVP vs EW bar chart, correlation heatmap, allocation table, VIE/ENG toggle, PDF export (browser print), Excel export (3 sheets), Update data button, cloud auto-init DB
+
+### Live deployment
+- **URL:** https://mctgiangproject1.streamlit.app
+- Cloud DB: auto-init via `_db_is_ready()` (file + COUNT>1000), auto-reinit on container restart
+
+### Next: Wed 22/04 — mobile test + friend UAT
+- Test public URL from mobile phone
+- Ask 1 person to use app without guidance — note issues
+- Continue report Chapter 3 (MPT theory, SLSQP)
 
 ### Data source note
 `vnstock3` VCI Company API returns 403 Forbidden. **Use `VCIQuote` direct import:**

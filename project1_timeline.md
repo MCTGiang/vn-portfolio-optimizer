@@ -9,9 +9,9 @@
 
 ---
 
-## Current Status — updated 08/04/2026
+## Current Status — updated 20/04/2026
 
-### Completed (Week 1 FULL ✅ + Week 2 ETL/Validation FULL ✅ + features.py written ✅)
+### Completed (Week 1 ✅ + Week 2 ✅ + Week 3 ✅ + Week 4 ✅ + Week 5 partial — ~2 weeks ahead)
 - [x] Install Git, create GitHub account, learn add → commit → push ✅ 2026-04-02
 - [x] Create repo "vn-portfolio-optimizer" (Public), clone to local machine ✅ 2026-04-02
 - [x] Create folder structure: data/raw, data/processed, notebooks/, src/, app/, reports/ ✅ 2026-04-02
@@ -30,13 +30,22 @@
 - [x] Plot VCB and VNM price history → reports/vcb_vnm_price_history.png ✅ 2026-04-04
 - [x] Write src/update_db.py as standalone CLI (--tickers, --start, --replace) ✅ 2026-04-04
 - [x] Set up CLAUDE.md + prompts/daily_log.md + logs/ workflow ✅ 2026-04-05
-- [x] Write src/features.py: calc_returns(), calc_log_returns(), build_returns_matrix(), calc_annualized_return(), calc_annualized_volatility(), ticker_summary() ✅ 2026-04-08
+- [x] Write src/features.py: calc_returns(), calc_log_returns(), build_returns_matrix(), annualized_return(), annualized_volatility(), ticker_stats(), all_ticker_stats() ✅ 2026-04-08
+- [x] Read MPT papers: Markowitz 1952, Elton/Gruber, Palomar — MVP rationale, SLSQP convex proof ✅ 2026-04-10
+- [x] Spot-check VCB annualized return vs Excel: 8.90% / 25.61% ✅ 2026-04-13
+- [x] Plot return distribution histograms for all 30 tickers (fat tails noted) ✅ 2026-04-13
+- [x] Write src/portfolio_metrics.py: expected_returns(), covariance_matrix(), correlation_matrix(), portfolio_stats(), display_metrics() ✅ 2026-04-13
+- [x] Verify portfolio_stats() by hand — VCB+VNM+KDC: 5.29% / 16.50% / Sharpe 0.048 ✅ 2026-04-13
+- [x] Equal-weights 30-ticker baseline: 18.98% / 20.67% / Sharpe 0.701 ✅ 2026-04-13
+- [x] Write src/optimizer.py: portfolio_variance(), min_variance_portfolio(), display_portfolio(), CLI ✅ 2026-04-20
+- [x] Verify: sum(weights)==1, all ≥ 0, Vol < 20.67% — 30-ticker: 33.9% reduction ✅ 2026-04-20
+- [x] Test optimizer on 5 ticker combos + edge cases (high-corr, high-vol, invalid ticker) ✅ 2026-04-20
+- [x] Build app/app.py: full Streamlit dashboard with metrics, donut, bar, heatmap, VI/EN toggle ✅ 2026-04-20
 
-### Next: Finish Week 2 by Sun 12/04
-- [ ] Test features.py end-to-end: load_from_db('VCB') → calc_returns() → verify one value vs Excel
-- [ ] Plot return distribution per ticker — identify most volatile stock
-- [ ] Commit: "feat: returns calculation module, verified against Excel"
-- [ ] Read MPT basics before Week 3 starts Mon 13/04
+### Next: Deploy Streamlit dashboard (Tue 21/04)
+- [ ] Commit app/app.py to GitHub
+- [ ] Deploy to Streamlit Cloud — connect GitHub repo, set entry point app/app.py
+- [ ] Verify public URL works end-to-end; test on mobile
 
 ---
 
@@ -94,21 +103,17 @@
 - ~~[Git] Commit: "feat: implement features.py — returns, annualized stats, returns matrix"~~ ✅
 
 ### Fri 10/04 (1h) — carry-over from 08/04
-- [Review] Spot-check: verify VCB annualized return for 2024 vs Excel (~20m) ← 08/04 carry-over
-- [Code] Plot return distribution histogram per ticker — identify most volatile stock (~30m) ← 08/04 carry-over
+- ~~[Review] Spot-check: verify VCB annualized return for 2024 vs Excel~~ ✅ 2026-04-13 (done in Mon session)
+- ~~[Code] Plot return distribution histogram per ticker~~ ✅ 2026-04-13
 
-### Sat 11/04 (3h) — 🟢 [BUFFER]
+### Sat 11/04 — 🟢 [BUFFER — skipped, not needed]
 - ~~[Code] Write update_db.py as standalone runnable script~~ ✅ Done early 2026-04-04
-- [Review] Run full pipeline: load_from_db() → calc_returns() → build_returns_matrix() end-to-end
-- [Finance] Read MPT: Expected Return = mean × 252, Variance, intuition behind Covariance
-- [Buffer] Fix any issues, add missing docstrings, clean notebooks
+- (Remaining tasks absorbed into Mon 13/04 extended session)
 
-### Sun 12/04 (5h)
-- [Finance] Continue MPT theory: Covariance Matrix, portfolio variance formula w^T × S × w
-- [Review] Re-run full pipeline from scratch — confirm no errors
-- [Buffer] Extra time: any remaining fixes or prep for Week 3
+### Sun 12/04 — 🟢 [BUFFER — skipped, not needed]
+- (All Week 2 + Week 3 content completed Mon 13/04)
 
-**Week 2 milestone:** returns_matrix verified against Excel, src/features.py complete and committed
+**Week 2 milestone:** ✅ DONE — returns_matrix verified vs Excel, src/features.py committed
 
 ---
 
@@ -124,119 +129,155 @@
 > - Portfolio variance formula: w^T x S x w
 > Without understanding this formula, you cannot explain results during thesis defense.
 
-### Mon 13/04 (1h)
-- [Finance] WATCH: Markowitz MPT tutorial 20 min
-- [Code] Code Expected Return per ticker: mean(daily_returns) x 252
+### Mon 13/04 (5h extended) ✅ DONE — ENTIRE WEEK 3 COMPLETED
+- ~~[Finance] Read MPT theory: Var, Cov, Corr, Covariance Matrix concepts~~ ✅
+- ~~[Code] Update portfolio.db to 10/04~~ ✅
+- ~~[Review] Spot-check VCB annualized return vs Excel (carry-over)~~ ✅ 8.90% / 25.61% match
+- ~~[Code] Plot return distribution histograms 30 tickers (carry-over)~~ ✅ fat tails noted
+- ~~[Code] Calculate Covariance Matrix (30×30, annualized)~~ ✅ variance 0.0324–0.1828
+- ~~[Code] Calculate Correlation Matrix + heatmap~~ ✅ banks cluster 0.5–0.7, KDC low-corr
+- ~~[Code] Implement src/portfolio_metrics.py: expected_returns, covariance_matrix, correlation_matrix, portfolio_stats, display_metrics~~ ✅
+- ~~[Review] Verify portfolio_stats() by hand — VCB+VNM+KDC: 5.29% / 16.50% / 0.048~~ ✅
+- ~~[Code] Compute equal-weights 30-ticker baseline: 18.98% / 20.67% / 0.701~~ ✅
+- ~~[Git] Commit: "feat: implement portfolio_metrics.py — covariance matrix, portfolio_stats, Sharpe ratio, verified"~~ ✅
 
-### Tue 14/04 (1h)
-- [Code] Code Volatility per ticker: std(daily_returns) x sqrt(252)
-- [Review] Verify against Excel: pick 1 ticker, calculate manually vs Python
+### Tue 14/04 (1h) — 🟢 [BUFFER / early Week 4]
+- [Finance] READ: scipy.optimize.minimize — constraints, bounds, SLSQP method (30m)
+- [Code] Start src/optimizer.py: write portfolio_variance() objective function
 
-### Wed 15/04 (1h)
-- [Finance] Understand Covariance Matrix: why co-movement matters for diversification
-- [Code] Calculate Covariance Matrix: returns_matrix.cov() x 252 (annualized)
+### Wed 15/04 (1h) — early Week 4
+- [Code] Define constraints: sum(weights) = 1
+- [Code] Define bounds: 0 ≤ weight_i ≤ 1 (long-only)
 
-### Thu 16/04 (1h)
-- [Code] Calculate Correlation Matrix: returns_matrix.corr() → visualize as heatmap
-- [Review] Analyze heatmap: which tickers are highly correlated?
+### Thu 16/04 (1h) — early Week 4
+- [Code] Run scipy.optimize.minimize → get optimal weights vector
+- [Review] Sanity check: sum(weights)==1? All weights ≥ 0?
 
-### Fri 17/04 (1h)
-- [Code] Write portfolio_stats(weights, exp_returns, cov_matrix) → (return, risk, sharpe)
-- [Review] Test with equal weights (10% each) — do numbers make sense?
+### Fri 17/04 (1h) — early Week 4
+- [Code] Calculate portfolio return and risk at Minimum Variance point
+- [Review] Compare Min Variance vs Equal Weights — confirm lower volatility
 
-### Sat 18/04 (3h)
-- [Code] Finalize src/portfolio_metrics.py: all functions clean with docstrings
-- [Review] Verify portfolio_stats() by hand calculation for 2-stock simple case
-- [Code] Add helper: display_metrics(tickers, weights) → formatted summary table
-- [Git] Commit: "feat: portfolio metrics module, covariance matrix"
+### Sat 18/04 (3h) — Week 4 core
+- [Code] Finalize src/optimizer.py: min_variance_portfolio(tickers, start, end) → weights dict
+- [Review] Test with 5–6 different ticker combinations, record results
+- [Code] Add Sharpe Ratio to optimizer output
+- [Git] Commit: "feat: minimum variance portfolio optimizer"
 
-### Sun 19/04 (5h)
-- [Review] Large buffer: resolve all logic errors from the week
-- [Finance] Read about Minimum Variance problem — formula and intuition (30 min)
-- [Review] Final check: can you explain each number in portfolio_stats() output verbally?
-- [Buffer] Improve heatmap visualization, add color formatting
+### Sun 19/04 (5h) — Week 4 buffer
+- [Review] Handle edge cases: missing data tickers, weights not converging
+- [Review] Final check: can you explain why each ticker got its allocation weight?
+- [Finance] Read about Efficient Frontier (optional prep for P2)
+- [Buffer] Any remaining Week 4 fixes
 
-**Week 3 milestone:** portfolio_stats() verified against Excel, can explain the correlation heatmap
+**Week 3 milestone:** ✅ DONE — portfolio_stats() verified vs Excel, correlation heatmap analyzed
 
 ---
 
-## WEEK 4 — Portfolio Optimizer / Minimum Variance (20–26/04) | ~17h
+## WEEK 4 — Portfolio Optimizer / Minimum Variance (14–19/04 early + 20–26/04) | ~17h
 **Goal:** min_variance_portfolio() returns sensible weights, tested on multiple ticker sets.
+> ⚠️ Started early (Tue 14/04) — Week 3 completed fully on Mon 13/04
 
 ### Scope boundary for Project 1 (important):
 > Only build: Minimum Variance Portfolio (1 point on Efficient Frontier).
 > Do NOT attempt full Efficient Frontier in Project 1 — save for Project 2.
 
-### Mon 20/04 (1h)
-- [Finance] READ: constraints and bounds in scipy.optimize.minimize (30 min)
-- [Learn] Run simple example: minimize x^2 + y^2 with constraint x + y = 1
+### Tue 14/04 (1h) — 🟢 early start
+- [Finance] READ: scipy.optimize.minimize — constraints, bounds, SLSQP method (30m)
+- [Code] Start src/optimizer.py: write portfolio_variance() objective function
 
-### Tue 21/04 (1h)
-- [Code] Write objective function: portfolio_variance(weights, cov_matrix)
+### Wed 15/04 (1h)
 - [Code] Define constraints: sum(weights) = 1
+- [Code] Define bounds: 0 ≤ weight_i ≤ 1 (long-only, no short selling)
 
-### Wed 22/04 (1h)
-- [Code] Define bounds: 0 <= weight_i <= 1 (long-only, no short selling)
-- [Code] Run scipy.optimize.minimize → get optimal weights
+### Thu 16/04 (1h)
+- [Code] Run scipy.optimize.minimize → get optimal weights vector
+- [Review] Sanity check: sum(weights)==1? All weights ≥ 0?
 
-### Thu 23/04 (1h)
-- [Review] Validate: sum(weights) == 1? All weights >= 0? Numbers make sense?
+### Fri 17/04 (1h)
 - [Code] Calculate portfolio return and risk at Minimum Variance point
+- [Review] Compare Min Variance vs Equal Weights — confirm lower volatility than 20.67%
 
-### Fri 24/04 (1h)
-- [Review] Compare Minimum Variance vs Equal Weights: which has lower risk and why?
+### Sat 18/04 (3h)
 - [Code] Finalize src/optimizer.py: min_variance_portfolio(tickers, start, end) → weights dict
-
-### Sat 25/04 (3h)
-- [Code] Standalone script: input ticker list → output formatted allocation table
 - [Review] Test with 5–6 different ticker combinations, record results in comparison table
-- [Code] Add Sharpe Ratio to output
+- [Code] Add Sharpe Ratio to optimizer output
 - [Git] Commit: "feat: minimum variance portfolio optimizer"
 
-### Sun 26/04 (5h)
+### Sun 19/04 (5h)
 - [Review] Buffer: handle edge cases — missing data tickers, weights not converging
 - [Code] Ensure optimizer runs independently without notebook dependency
 - [Review] Final check: can you explain why each ticker got its allocation weight?
 - [Buffer] Add Max Sharpe Portfolio as optional second output if time allows
 
-**Week 4 milestone:** min_variance_portfolio() returns sensible weights, tested on multiple combos
+### Mon 20/04 ✅ DONE 2026-04-20 — extended session (~7h)
+- ~~[Finance] Learned w^T×Σ×w formula, diversification visualization~~ ✅
+- ~~[Finance] Learned scipy.optimize.minimize: constraints, bounds, SLSQP, OptimizeResult~~ ✅
+- ~~[Code] src/optimizer.py: portfolio_variance(), min_variance_portfolio(), display_portfolio(), CLI~~ ✅
+- ~~[Review] Tested 5 combos — 30 VN30 tickers: Vol 33.9% below equal-weights baseline~~ ✅
+- ~~[Review] Edge cases: 2 high-corr tickers, PDR/HVN high-vol, invalid ticker → ValueError~~ ✅
+- ~~[Git] Commit: "feat: minimum variance portfolio optimizer, tested on 5 ticker combos"~~ ✅
+- ~~[Code] app/app.py: full Streamlit dashboard — metrics, donut, bar chart, heatmap, alloc table~~ ✅
+- ~~[UI] Language toggle VI/EN, donut labels, heatmap auto-font, bar chart colors~~ ✅
+
+### Tue 21/04 ✅ DONE 2026-04-21 — extended session (~5-6h)
+- ~~[Code] app/app.py full UI redesign: green palette, Inter font, HTML KPI cards, PDF/Excel export~~ ✅
+- ~~[Code] Sidebar Update data button + auto `st.cache_data.clear()` + `st.rerun()`~~ ✅
+- ~~[Deploy] Streamlit Cloud: mctgiangproject1.streamlit.app — connected, live~~ ✅
+- ~~[Fix] `_db_is_ready()`: file check + COUNT>1000 guard before all sidebar components~~ ✅
+- ~~[Fix] Auto-reinit DB on cloud container restart in optimizer except block~~ ✅
+- ~~[Fix] Synced start date 2021-01-01 cloud ↔ local~~ ✅
+- ~~[Data] VN30 updated Q1/2026: VPL in, BCM out; 10 new tickers fetched~~ ✅
+- ~~[Code] portfolio_metrics.py: hardcoded end date → get_db_summary()['end_date'].max()~~ ✅
+- ~~[Docs] README: Streamlit URL + badge added~~ ✅
+- ~~[Report] Chapter 2.3 Class Diagram, 2.4 Class Detail, Lời Nói Đầu, Chi Tiết Công Việc~~ ✅
+
+### Wed 22/04 (1h) — 🔴 verify + user test
+- [Review] Test public URL from mobile phone
+- [Review] Ask 1 person to use app without guidance — note issues
+
+### Thu 23/04 (1h) — 🟢 [BUFFER / report]
+- [Report] Continue Chapter 3: MPT theory, SLSQP explanation
+- [Code] Fix any UI bugs from user testing (Wed)
+
+### Fri 24/04 – Sun 26/04 — 🟢 [BUFFER]
+- (Buffer: Week 6 refactor early start or report Chapter 3 continuation)
+
+**Week 4 milestone:** ✅ DONE — min_variance_portfolio() tested on 5 combos, Vol 33.9% below baseline
 
 ---
 
-## WEEK 5 — Streamlit Dashboard (27/04–03/05) | ~17h
+## WEEK 5 — Streamlit Dashboard (20/04 early + 21/04 complete) | ~17h
 **Goal:** Public Streamlit URL, anyone can use without instructions.
+> ✅ Dashboard built 20/04, deployed + full redesign 21/04 — 12 days ahead of 03/05 target
 
-### Sun 27/04 (5h)
-- [Learn] Streamlit basics: st.multiselect, st.plotly_chart, st.metric, st.columns (1h)
-- [Code] Hello World dashboard: select tickers → display price history line chart
-- [Code] Connect app.py to SQLite: load data → returns → optimizer pipeline
-- [Code] Display allocation results as formatted table
+### ~~Sun 27/04 (5h)~~ DONE EARLY 2026-04-20
+- ~~[Learn] Streamlit basics: st.multiselect, st.plotly_chart, st.metric, st.columns~~ ✅
+- ~~[Code] Hello World → connect pipeline → display allocation table~~ ✅
+- ~~[Viz] Donut chart, bar chart MVP vs EW, correlation heatmap, metric cards~~ ✅
+- ~~[Code] Language toggle VI/EN, @st.cache_data, compact CSS~~ ✅
 
-### Mon 28/04 (1h)
-- [Viz] Draw Pie chart of portfolio allocation using Plotly
+### ~~Mon 28/04~~ DONE EARLY 2026-04-20/21
+- ~~[Viz] Donut chart of portfolio allocation~~ ✅
 
-### Tue 29/04 (1h)
-- [Viz] Draw Correlation Heatmap for selected tickers
+### ~~Tue 29/04~~ DONE EARLY 2026-04-21
+- ~~[Viz] Correlation Heatmap for selected tickers~~ ✅
 
-### Wed 30/04 (1h) — Liberation Day, work from home
-- [Code] Add Metric cards: Portfolio Return, Portfolio Volatility, Sharpe Ratio
-- [Code] Side-by-side comparison: Optimized Weights vs Equal Weights
+### ~~Wed 30/04~~ DONE EARLY 2026-04-21 — Liberation Day
+- ~~[Code] Metric cards: Return, Volatility, Sharpe, Active Positions~~ ✅
+- ~~[Code] Side-by-side MVP vs Equal Weights comparison~~ ✅
 
-### Thu 01/05 (1h) — Labour Day, work from home
-- [Review] UX test: select different ticker combos — does dashboard respond correctly?
-- [Code] Fix UI issues, improve layout
+### ~~Fri 02/05~~ DONE EARLY 2026-04-21
+- ~~[Code] requirements.txt finalized with pinned versions~~ ✅
+- ~~[Deploy] mctgiangproject1.streamlit.app live~~ ✅
 
-### Fri 02/05 (1h)
-- [Code] Update requirements.txt with all dependencies
-- [Code] Deploy to Streamlit Cloud: connect GitHub repo, configure entry point
+### Thu 01/05 (1h) — Labour Day — 🟢 [BUFFER]
+- (Mobile test + friend test done Wed 22/04 — this day is buffer)
 
-### Sat 03/05 (3h)
-- [Review] Test public URL from mobile phone
-- [Review] Ask 1 person to use the app without guidance — observe and note issues
-- [Code] Fix UI bugs from user testing
-- [Git] Commit: "feat: streamlit dashboard deployed, URL updated in README"
+### Sat 03/05 (3h) — 🟢 [BUFFER → report writing]
+- [Report] Chapter 3 draft: MPT theory, covariance matrix, SLSQP explanation
+- [Review] Any remaining UI polish if needed
 
-**Week 5 milestone:** Send Streamlit link to a friend, they use it without any explanation
+**Week 5 milestone:** ✅ DONE — mctgiangproject1.streamlit.app live; mobile + friend test pending Wed 22/04
 
 ---
 
@@ -354,8 +395,8 @@
 - [x] SQLite database: 30 VN30 tickers, 2021–2026 (39,189 rows) ✅ 2026-04-03
 - [x] src/data_loader.py: ETL pipeline VCI primary / yfinance fallback, fully functional ✅ 2026-04-03
 - [x] src/update_db.py: standalone CLI with argparse ✅ 2026-04-04
-- [ ] src/features.py: returns, volatility, annualized metrics, verified vs Excel
-- [ ] src/portfolio_metrics.py: Expected Return + Covariance Matrix, verified vs Excel
+- [x] src/features.py: returns, volatility, annualized metrics, verified vs Excel ✅ 2026-04-13
+- [x] src/portfolio_metrics.py: Expected Return + Covariance Matrix, verified vs Excel ✅ 2026-04-13
 - [ ] src/optimizer.py: Minimum Variance Portfolio, sensible weights
 - [ ] app/app.py: Streamlit dashboard with pie chart + metric cards, public URL
 - [ ] Video demo: 2–3 min, explains each output number
@@ -382,6 +423,12 @@
 | 06/04 | MISSED — personal commitments | — |
 | 07/04 | MISSED — personal commitments (2nd consecutive day) | — |
 | 08/04 | SQLite/data_loader/update_db deep review; MPT theory (simple vs log return, ×252/×√252); data quality checks ✅; features.py: 7 functions, LPB 47.25% / SAB -7.37% | feat: implement features.py — returns, annualized stats, returns matrix for 30 VN30 tickers |
+| 10/04 | MPT theory: Markowitz 1952, Elton/Gruber, Palomar — why MVP (no return estimation), SLSQP convex proof, fat tails as P1 limitation | — |
+| 11/04 | OFF — personal commitments (was buffer day in plan) | — |
+| 12/04 | OFF — personal commitments (was buffer day in plan) | — |
+| 13/04 | DB updated to 10/04; VCB spot-check ✅ 8.90%/25.61%; 30-ticker histograms (fat tails noted); Cov/Corr matrices; portfolio_metrics.py: 5 functions verified (VCB+VNM+KDC 5.29%/16.50%/0.048); baseline 18.98%/20.67%/0.701 | feat: implement portfolio_metrics.py — covariance matrix, portfolio_stats, Sharpe ratio, verified |
+| 20/04 | MVP theory + scipy SLSQP learned; optimizer.py: portfolio_variance(), min_variance_portfolio(), display_portfolio(), CLI (239 lines); 5 combo tests, 33.9% Vol reduction on 30 tickers; edge cases verified; app/app.py: full Streamlit dashboard with metrics, donut, bar, heatmap, VI/EN toggle (uncommitted) | feat: minimum variance portfolio optimizer, tested on 5 ticker combos |
+| 21/04 | app/app.py full redesign: green palette #146026, Inter font, HTML KPI cards, PDF/Excel export (3-sheet), Update data button; deployed mctgiangproject1.streamlit.app; 4 cloud DB fixes (_db_is_ready, auto-reinit); VN30 Q1/2026 update (VPL in, BCM out); portfolio_metrics end date from DB; report Ch2.3–2.4 drafted | feat: streamlit dashboard complete + 10 fix commits |
 
 ---
 
