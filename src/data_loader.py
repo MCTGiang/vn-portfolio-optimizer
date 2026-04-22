@@ -59,10 +59,10 @@ def fetch_ticker_vci(ticker: str, start: str, end: str) -> pd.DataFrame:
     """
     try:
         from vnstock import Vnstock
-        stock = Vnstock().stock(symbol=ticker, source='TCBS')
+        stock = Vnstock().stock(symbol=ticker, source='KBS')
         df = stock.quote.history(start=start, end=end, interval='1D')
         if df.empty:
-            print(f"  ⚠️  vnstock trả về rỗng cho {ticker} (Nguồn: TCBS)")
+            print(f"  ⚠️  vnstock trả về rỗng cho {ticker} (Nguồn: KBS)")
             return pd.DataFrame()
 
         out = pd.DataFrame({
