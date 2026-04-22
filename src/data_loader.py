@@ -1,7 +1,7 @@
 """
 data_loader.py
 ETL pipeline for VN stock market data.
-Primary source : vnstock3 VCIQuote (accurate VND prices, exact date range)
+Primary source : vnstock VCIQuote (accurate VND prices, exact date range)
 Fallback source: yfinance
 """
 
@@ -51,16 +51,16 @@ def create_table() -> None:
     print("✅ Table Stock_Prices ready")
 
 
-# ── Fetch: vnstock3 VCI (primary) ─────────────────────────────────────────────
+# ── Fetch: vnstock VCI (primary) ─────────────────────────────────────────────
 
 def fetch_ticker_vci(ticker: str, start: str, end: str) -> pd.DataFrame:
     """
-    Fetch OHLCV from VCI via vnstock3.
+    Fetch OHLCV from VCI via vnstock.
     Prices in VND/1000 (e.g. VCB = 58.77 means 58,770 VND).
     Exact date range, no adjusted prices.
     """
     try:
-        from vnstock3.explorer.vci.quote import Quote as VCIQuote
+        from vnstock.explorer.vci.quote import Quote as VCIQuote
         q  = VCIQuote(symbol=ticker, show_log=False)
         df = q.history(start=start, end=end, interval='1D')
 
@@ -186,6 +186,15 @@ def get_db_summary() -> pd.DataFrame:
     '''
     df = pd.read_sql_query(query, conn)
     conn.close()
+    # Total tickets and rows in DB 
+    total_tickers = len(df)
+    total_rows = df['rows'].sum()
+    
+    # Hiển thị thông tin ra console
+    print("-" * 45)
+    print(f"No. Tickers : {total_tickers}")
+    print(f"No. Rows    : {total_rows:,}")
+    print("-" * 45)
     return df
 
 
@@ -222,7 +231,7 @@ def update_db(tickers: list = None,
         print(f"🗑️  Cleared existing rows for: {tickers}\n")
 
     print(f"📥 Fetching {len(tickers)} tickers | {start} → {end}")
-    print(f"   Source: vnstock3 VCI (fallback: yfinance)\n")
+    print(f"   Source: vnstock VCI (fallback: yfinance)\n")
 
     total = 0
     for ticker in tickers:

@@ -13,6 +13,7 @@ import pandas as pd
 import numpy as np
 import io
 import streamlit.components.v1 as components
+from datetime import datetime
 
 # Fallback mock data for UI testing when src modules are unavailable
 try:
@@ -315,11 +316,11 @@ with st.sidebar:
     # Language toggle — two buttons styled as a pill via CSS
     tb_col1, tb_col2 = st.columns(2)
     with tb_col1:
-        if st.button("VIE", key="btn_vi", use_container_width=True, type="primary" if lang_cur == 'vi' else "secondary"):
+        if st.button("VIE", key="btn_vi", width='stretch', type="primary" if lang_cur == 'vi' else "secondary"):
             st.session_state['lang'] = 'vi'
             st.rerun()
     with tb_col2:
-        if st.button("ENG", key="btn_en", use_container_width=True, type="primary" if lang_cur == 'en' else "secondary"):
+        if st.button("ENG", key="btn_en", width='stretch', type="primary" if lang_cur == 'en' else "secondary"):
             st.session_state['lang'] = 'en'
             st.rerun()
 
@@ -350,7 +351,7 @@ with st.sidebar:
 
     # Manual data refresh button
     st.markdown(f"<div style='margin-top:12px'></div>", unsafe_allow_html=True)
-    if st.sidebar.button(f"🔄 {L['btn_update']}", use_container_width=True):
+    if st.sidebar.button(f"🔄 {L['btn_update']}", width='stretch'):
         with st.status(f"🚀 {L['status_updating']}", expanded=True) as status:
             try:
                 from data_loader import update_db
@@ -362,6 +363,11 @@ with st.sidebar:
                 st.toast(L['toast_success'], icon="✅")
                 st.rerun()
             except Exception as e:
+                import traceback
+                print("\n=== LỖI KHI BẤM NÚT CẬP NHẬT ===")
+                traceback.print_exc() 
+                print("==================================\n")
+                
                 status.update(label=f"❌ {L['status_err']}: {str(e)}", state="error")
                 st.sidebar.error(L['toast_err'])
 
@@ -395,7 +401,7 @@ with c_title:
 
 with c_pdf:
     # PDF export via browser print dialog (window.parent.print for iframe context)
-    if st.button("📄 " + L['exp_pdf'], key="btn_pdf", use_container_width=True):
+    if st.button("📄 " + L['exp_pdf'], key="btn_pdf", width='stretch'):
         # Tạo một iframe ẩn kích thước 0x0 để chạy Javascript tác động lên cửa sổ cha
         components.html(
             "<script>window.parent.print();</script>",
@@ -488,7 +494,7 @@ with c_excel:
         data=buf,
         file_name="portfolio_optimization.xlsx",
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        use_container_width=True,
+        width='stretch',
     )
 
 # ── KPI Cards ─────────────────────────────────────────────────────────────────
@@ -536,7 +542,7 @@ with col_pie:
         height=320, paper_bgcolor='rgba(0,0,0,0)'
     )
     fig_pie.update_traces(hovertemplate='<b>%{label}</b><br>Tỷ trọng: %{percent:.1%}<extra></extra>')
-    st.plotly_chart(fig_pie, use_container_width=True, config={'displayModeBar': False})
+    st.plotly_chart(fig_pie, width='stretch', config={'displayModeBar': False})
 
 # Grouped bar chart — MVP vs Equal Weights on Return, Volatility, Sharpe
 with col_bar:
@@ -565,7 +571,7 @@ with col_bar:
         paper_bgcolor='rgba(0,0,0,0)',
         uniformtext_minsize=10, uniformtext_mode='hide'
     )
-    st.plotly_chart(fig_bar, use_container_width=True, config={'displayModeBar': False})
+    st.plotly_chart(fig_bar, width='stretch', config={'displayModeBar': False})
 
 # ── Correlation heatmap ───────────────────────────────────────────────────────
 # Color scale: dark green (low) → yellow (mid) → orange-red (high = needs attention)
@@ -585,7 +591,7 @@ fig_heat.update_layout(
     yaxis=dict(autorange='reversed'),
     paper_bgcolor='rgba(0,0,0,0)'
 )
-st.plotly_chart(fig_heat, use_container_width=True, config={'displayModeBar': False})
+st.plotly_chart(fig_heat, width='stretch', config={'displayModeBar': False})
 
 # ── Allocation Table ──────────────────────────────────────────────────────────
 st.markdown(f"<div style='margin-top:12px'><div class='sec-hdr'>{L['sec_tbl']}</div></div>", unsafe_allow_html=True)
@@ -600,7 +606,7 @@ alloc_disp = pd.DataFrame({
 
 st.dataframe(
     alloc_disp,
-    use_container_width=True,
+    width='stretch',
     hide_index=True,
     column_config={
         L['col_ticker']: st.column_config.TextColumn(L['col_ticker'], alignment="center"),
