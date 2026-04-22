@@ -20,7 +20,7 @@ try:
     from optimizer import min_variance_portfolio
     from portfolio_metrics import portfolio_stats
 except ImportError:
-    VN30_TICKERS = ['VCB','VNM','HPG','FPT','MWG','BID','CTG','VIC','GAS','REE']
+    VN30_TICKERS = ['VCB','VNM','HPG','FPT','MWG','BID','CTG','VIC','GAS','MSN']
     def get_db_summary(): return pd.DataFrame({'start_date': ['2021-01-01'], 'end_date': ['2026-04-20'], 'rows': [39519]})
     def min_variance_portfolio(tickers):
         n = len(tickers)
@@ -327,7 +327,7 @@ with st.sidebar:
 
     # Ticker selection
     st.markdown(f"<div style='font-size:11px;font-weight:700;color:{C_BRAND};text-transform:uppercase;letter-spacing:.05em;margin:16px 0 6px'>{L['cfg']}</div>", unsafe_allow_html=True)
-    selected = st.multiselect(L['pick'], options=VN30_TICKERS, default=['VCB','VNM','HPG','FPT','MWG','BID','CTG','VIC','GAS','REE'], label_visibility="collapsed")
+    selected = st.multiselect(L['pick'], options=VN30_TICKERS, default=['VCB','VNM','HPG','FPT','MWG','BID','CTG','VIC','GAS','MSN'], label_visibility="collapsed")
     st.caption(L['pick'])
 
     st.markdown(f"<div style='font-size:11px;font-weight:700;color:{C_BRAND};text-transform:uppercase;letter-spacing:.05em;margin:16px 0 6px'>{L['db_info']}</div>", unsafe_allow_html=True)
