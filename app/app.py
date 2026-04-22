@@ -20,7 +20,7 @@ try:
     from optimizer import min_variance_portfolio
     from portfolio_metrics import portfolio_stats
 except ImportError:
-    VN30_TICKERS = ['VCB','VNM','HPG','FPT','MWG','BID','CTG','KDC','GAS','REE']
+    VN30_TICKERS = ['VCB','VNM','HPG','FPT','MWG','BID','CTG','VIC','GAS','REE']
     def get_db_summary(): return pd.DataFrame({'start_date': ['2021-01-01'], 'end_date': ['2026-04-20'], 'rows': [39519]})
     def min_variance_portfolio(tickers):
         n = len(tickers)
