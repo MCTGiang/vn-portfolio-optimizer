@@ -16,7 +16,7 @@ import os
 import sys
 
 sys.path.insert(0, os.path.dirname(__file__))
-from data_loader import load_from_db, VN30_TICKERS
+from data_loader import load_from_db, VN30_TICKERS, get_db_summary
 
 # ── Constants ──────────────────────────────────────────────────────────────────
 
@@ -181,10 +181,11 @@ def all_ticker_stats(tickers: list,
 # ── Entry point ────────────────────────────────────────────────────────────────
 
 if __name__ == '__main__':
+    from data_loader import get_db_summary
     START = '2021-01-01'
-    END   = '2026-04-08'
+    END   = get_db_summary()['end_date'].max()
 
-    print("Building returns matrix for 30 VN30 tickers...")
+    print("Building returns matrix for VN30 tickers...")
     matrix = build_returns_matrix(VN30_TICKERS, START, END)
     print(f"Returns matrix shape: {matrix.shape}")
     print(f"Date range: {matrix.index[0].date()} → {matrix.index[-1].date()}")
