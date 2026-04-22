@@ -1,7 +1,7 @@
 """
 data_loader.py
 ETL pipeline for VN stock market data.
-Primary source : vnstock VCIQuote (accurate VND prices, exact date range)
+Primary source : vnstock KBSQuote (accurate VND prices, exact date range)
 Fallback source: yfinance
 """
 
@@ -51,11 +51,11 @@ def create_table() -> None:
     print("✅ Table Stock_Prices ready")
 
 
-# ── Fetch: vnstock VCI (primary) ─────────────────────────────────────────────
+# ── Fetch: vnstock KBS (primary) ─────────────────────────────────────────────
 
-def fetch_ticker_vci(ticker: str, start: str, end: str) -> pd.DataFrame:
+def fetch_ticker_kbs(ticker: str, start: str, end: str) -> pd.DataFrame:
     """
-    Fetch OHLCV from VCI via vnstock.
+    Fetch OHLCV from KBS via vnstock.
     """
     try:
         from vnstock import Vnstock
@@ -116,8 +116,8 @@ def fetch_ticker_yfinance(ticker: str, start: str, end: str) -> pd.DataFrame:
 # ── Smart fetch with fallback ──────────────────────────────────────────────────
 
 def fetch_ticker(ticker: str, start: str, end: str) -> pd.DataFrame:
-    """Try VCI first, fall back to yfinance if VCI returns empty."""
-    df = fetch_ticker_vci(ticker, start, end)
+    """Try KBS first, fall back to yfinance if KBS returns empty."""
+    df = fetch_ticker_kbs(ticker, start, end)
     if df.empty:
         print(f"  → Fallback to yfinance for {ticker}")
         df = fetch_ticker_yfinance(ticker, start, end)
@@ -231,7 +231,7 @@ def update_db(tickers: list = None,
         print(f"🗑️  Cleared existing rows for: {tickers}\n")
 
     print(f"📥 Fetching {len(tickers)} tickers | {start} → {end}")
-    print(f"   Source: vnstock VCI (fallback: yfinance)\n")
+    print(f"   Source: vnstock KBS (fallback: yfinance)\n")
 
     total = 0
     for ticker in tickers:
