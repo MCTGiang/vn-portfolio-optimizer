@@ -327,7 +327,7 @@ with st.sidebar:
 
     # Ticker selection
     st.markdown(f"<div style='font-size:11px;font-weight:700;color:{C_BRAND};text-transform:uppercase;letter-spacing:.05em;margin:16px 0 6px'>{L['cfg']}</div>", unsafe_allow_html=True)
-    selected = st.multiselect(L['pick'], options=VN30_TICKERS, default=['VCB','VNM','HPG','FPT','MWG','BID','CTG','KDC','GAS','REE'], label_visibility="collapsed")
+    selected = st.multiselect(L['pick'], options=VN30_TICKERS, default=['VCB','VNM','HPG','FPT','MWG','BID','CTG','VIC','GAS','REE'], label_visibility="collapsed")
     st.caption(L['pick'])
 
     st.markdown(f"<div style='font-size:11px;font-weight:700;color:{C_BRAND};text-transform:uppercase;letter-spacing:.05em;margin:16px 0 6px'>{L['db_info']}</div>", unsafe_allow_html=True)
