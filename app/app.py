@@ -625,7 +625,7 @@ def build_pdf(fig_donut, fig_bar, fig_heat, result, eq_stats, lang_key):
     """
     from fpdf import FPDF
     from fpdf.enums import XPos, YPos
-    import plotly.io as pio, tempfile, os
+    import tempfile, os
 
     # ── Dùng fpdf2 built-in Unicode font (không cần file .ttf ngoài) ──────
     class UnicodePDF(FPDF):
@@ -682,19 +682,111 @@ def build_pdf(fig_donut, fig_bar, fig_heat, result, eq_stats, lang_key):
     pdf.set_text_color(0, 0, 0)
     pdf.ln(3)
 
-    # Render Donut + Bar side by side trên trang 1
+    # ── Render biểu đồ bằng matplotlib — không cần Chrome/kaleido ────────
+    import matplotlib
+    matplotlib.use('Agg')          # non-interactive backend, an toàn trên server
+    import matplotlib.pyplot as plt
+    import matplotlib.patches as mpatches
+    import numpy as _np
     tmpdir = tempfile.mkdtemp()
-    charts_p1 = [(fig_donut, "donut", 130, 90), (fig_bar, "bar", 130, 90)]
-    x_positions = [10, 148]  # A4 landscape = 297mm wide
-    for (fig, name, w_mm, h_mm), x in zip(charts_p1, x_positions):
-        img_bytes = pio.to_image(fig, format="png",
-                                 width=int(w_mm * 4),
-                                 height=int(h_mm * 4),
-                                 scale=2)
-        path = os.path.join(tmpdir, f"{name}.png")
-        with open(path, "wb") as f:
-            f.write(img_bytes)
-        pdf.image(path, x=x, y=pdf.get_y(), w=w_mm, h=h_mm)
+
+    def _save_donut(fig_pl, path, tickers, weights, colors_list, others_label):
+        """Vẽ lại donut chart bằng matplotlib."""
+        mask  = weights >= 0.03
+        lbls  = [t for t, m in zip(tickers, mask) if m]
+        vals  = weights[mask].tolist()
+        other_sum = weights[~mask].sum()
+        if other_sum > 0.001:
+            lbls.append(others_label); vals.append(other_sum)
+        clrs = colors_list[:len(vals)]
+
+        fig, ax = plt.subplots(figsize=(5, 4), facecolor='white')
+        wedges, texts, autotexts = ax.pie(
+            vals, labels=lbls, colors=clrs,
+            autopct='%1.1f%%', startangle=90,
+            wedgeprops=dict(width=0.45, edgecolor='white', linewidth=1.5),
+            pctdistance=1.18, labeldistance=1.35,
+        )
+        for t in texts:    t.set_fontsize(7)
+        for t in autotexts: t.set_fontsize(7)
+        ax.set_title("Phan bo ty trong" if lang_key != 'vi' else "Phân bổ tỷ trọng",
+                     fontsize=9, pad=8)
+        plt.tight_layout()
+        plt.savefig(path, dpi=180, bbox_inches='tight', facecolor='white')
+        plt.close(fig)
+
+    def _save_bar(path, m_vals, e_vals, m_labels, mvp_lbl, ew_lbl):
+        """Vẽ lại grouped bar chart bằng matplotlib."""
+        x   = _np.arange(len(m_labels))
+        w   = 0.35
+        fig, ax = plt.subplots(figsize=(5, 4), facecolor='white')
+        b1 = ax.bar(x - w/2, m_vals, w, label=mvp_lbl,  color='#146026')
+        b2 = ax.bar(x + w/2, e_vals, w, label=ew_lbl,   color='#E5E7EB', edgecolor='#9CA3AF')
+        ax.bar_label(b1, fmt=lambda v: f"{v:.1%}" if v < 2 else f"{v:.3f}", fontsize=7, padding=2)
+        ax.bar_label(b2, fmt=lambda v: f"{v:.1%}" if v < 2 else f"{v:.3f}", fontsize=7, padding=2)
+        ax.set_xticks(x); ax.set_xticklabels(m_labels, fontsize=8)
+        ax.set_ylim(0, max(max(m_vals), max(e_vals)) * 1.3)
+        ax.yaxis.set_visible(False)
+        ax.spines[['top','right','left']].set_visible(False)
+        ax.legend(fontsize=8, loc='upper right')
+        ax.set_title("MVP vs Dong deu" if lang_key != 'vi' else "MVP vs Đồng đều",
+                     fontsize=9)
+        plt.tight_layout()
+        plt.savefig(path, dpi=180, bbox_inches='tight', facecolor='white')
+        plt.close(fig)
+
+    def _save_heatmap(path, corr_matrix, tickers):
+        """Vẽ lại heatmap bằng matplotlib."""
+        n   = len(tickers)
+        fig, ax = plt.subplots(figsize=(max(6, n * 0.55), max(5, n * 0.5)),
+                               facecolor='white')
+        import matplotlib.colors as mcolors
+        cmap = matplotlib.colors.LinearSegmentedColormap.from_list(
+            'vn', ['#146026', '#52B788', '#FFE08A', '#FFA04A', '#DC2626'])
+        im = ax.imshow(corr_matrix, cmap=cmap, vmin=-0.2, vmax=1.0, aspect='auto')
+        ax.set_xticks(range(n)); ax.set_xticklabels(tickers, rotation=45,
+                                                     ha='right', fontsize=7)
+        ax.set_yticks(range(n)); ax.set_yticklabels(tickers, fontsize=7)
+        for i in range(n):
+            for j in range(n):
+                val = corr_matrix[i, j]
+                clr = 'white' if val > 0.7 or val < 0.1 else 'black'
+                ax.text(j, i, f'{val:.2f}', ha='center', va='center',
+                        fontsize=5.5, color=clr)
+        plt.colorbar(im, ax=ax, shrink=0.8)
+        ax.set_title("Ma tran tuong quan" if lang_key != 'vi' else "Ma trận tương quan",
+                     fontsize=9, pad=8)
+        plt.tight_layout()
+        plt.savefig(path, dpi=180, bbox_inches='tight', facecolor='white')
+        plt.close(fig)
+
+    # Tạo ảnh
+    tickers_list = list(result['tickers'])
+    weights_arr  = _np.array(result['weights'])
+    donut_path   = os.path.join(tmpdir, "donut.png")
+    bar_path     = os.path.join(tmpdir, "bar.png")
+    heat_path    = os.path.join(tmpdir, "heat.png")
+    others_lbl   = "Khac" if lang_key != 'vi' else "Khác"
+
+    _save_donut(fig_donut, donut_path, tickers_list, weights_arr,
+                DONUT_COLORS, others_lbl)
+
+    L_cur = LANG[lang_key]
+    m_labels = [L_cur['kpi_ret'], L_cur['kpi_vol'], L_cur['kpi_sharpe']]
+    m_vals   = [result['port_return'], result['port_volatility'], result['sharpe_ratio']]
+    e_vals   = [eq_stats['port_return'], eq_stats['port_volatility'], eq_stats['sharpe_ratio']]
+    _save_bar(bar_path, m_vals, e_vals, m_labels,
+              L_cur['mvp_lbl'], L_cur['ew_lbl'])
+
+    import numpy as _np2
+    std_a = _np2.sqrt(_np2.diag(result['cov'].values))
+    corr  = result['cov'].values / _np2.outer(std_a, std_a)
+    _save_heatmap(heat_path, corr, tickers_list)
+
+    # Trang 1: Donut + Bar song song
+    y_after_header = pdf.get_y()
+    pdf.image(donut_path, x=10,  y=y_after_header, w=133, h=95)
+    pdf.image(bar_path,   x=152, y=y_after_header, w=133, h=95)
 
     # ── Trang 2: Heatmap ──────────────────────────────────────────────────
     pdf.add_page()
@@ -705,12 +797,6 @@ def build_pdf(fig_donut, fig_bar, fig_heat, result, eq_stats, lang_key):
     pdf.cell(0, 8, heat_title, new_x=XPos.LMARGIN, new_y=YPos.NEXT, align='C')
     pdf.ln(2)
 
-    heat_bytes = pio.to_image(fig_heat, format="png",
-                              width=1600, height=max(600, 40 * len(result['tickers'])),
-                              scale=2)
-    heat_path = os.path.join(tmpdir, "heat.png")
-    with open(heat_path, "wb") as f:
-        f.write(heat_bytes)
     pdf.image(heat_path, x=10, y=pdf.get_y(), w=277)
     pdf.ln(3)
 
