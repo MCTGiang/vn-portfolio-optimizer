@@ -808,7 +808,7 @@ def build_pdf(fig_donut, fig_bar, fig_heat, result, eq_stats, lang_key):
              new_x=XPos.LMARGIN, new_y=YPos.NEXT, align='C')
 
     # fpdf2: output() trả về bytes trực tiếp
-    return pdf.output()
+    return bytes(pdf.output())
 
 
 # Render nút PDF vào placeholder đã tạo ở header (sau khi biểu đồ sẵn sàng)
