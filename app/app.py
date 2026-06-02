@@ -12,7 +12,6 @@ import plotly.graph_objects as go
 import pandas as pd
 import numpy as np
 import io
-from fpdf import FPDF
 import plotly.io as pio
 import streamlit.components.v1 as components
 from datetime import datetime
@@ -616,6 +615,7 @@ st.dataframe(
         L['col_vol']   : st.column_config.NumberColumn(L['col_vol'],  format="%.1f%%", alignment="center"),
     }
 )
+
 # ── PDF Export — render sau khi tất cả biểu đồ đã sẵn sàng ──────────────────
 def build_pdf(fig_donut, fig_bar, fig_heat, result, eq_stats, lang_key):
     """
@@ -624,20 +624,53 @@ def build_pdf(fig_donut, fig_bar, fig_heat, result, eq_stats, lang_key):
     Trả về bytes để dùng với st.download_button.
     """
     from fpdf import FPDF
+    from fpdf.enums import XPos, YPos
     import plotly.io as pio, tempfile, os
 
-    pdf = FPDF(orientation='L', unit='mm', format='A4')
+    # ── Dùng fpdf2 built-in Unicode font (không cần file .ttf ngoài) ──────
+    class UnicodePDF(FPDF):
+        pass
+
+    pdf = UnicodePDF(orientation='L', unit='mm', format='A4')
     pdf.set_auto_page_break(auto=True, margin=10)
+
+    # fpdf2 >= 2.7 hỗ trợ font "helvetica" với unicode nếu dùng
+    # core_fonts_encoding — cách chắc chắn nhất là strip dấu tiếng Việt
+    # hoặc dùng DejaVuSans (bundled sẵn trong fpdf2 >= 2.7.4)
+    try:
+        # Thử DejaVuSans bundled trong fpdf2 >= 2.7.4
+        pdf.add_font("DejaVu", style="",  fname="DejaVuSansCondensed.ttf",        uni=True)
+        pdf.add_font("DejaVu", style="B", fname="DejaVuSansCondensed-Bold.ttf",   uni=True)
+        pdf.add_font("DejaVu", style="I", fname="DejaVuSansCondensed-Oblique.ttf",uni=True)
+        FONT = "DejaVu"
+    except Exception:
+        # Fallback: fpdf2 >= 2.7.9 có thể dùng "helvetica" với latin subset
+        # → thay ký tự Unicode bằng ASCII tương đương
+        FONT = None
+
+    def safe_text(text):
+        """Nếu không có Unicode font, chuyển ký tự tiếng Việt về ASCII."""
+        if FONT:
+            return text
+        import unicodedata
+        return unicodedata.normalize('NFKD', text).encode('ascii', 'ignore').decode('ascii')
+
+    def set_font(size, style=""):
+        if FONT:
+            pdf.set_font(FONT, style=style, size=size)
+        else:
+            pdf.set_font("Helvetica", style=style, size=size)
 
     # ── Trang 1: Tiêu đề + KPI + Donut + Bar ──────────────────────────────
     pdf.add_page()
-    pdf.set_font("Helvetica", "B", 15)
-    title = "TỐI ƯU HÓA DANH MỤC VN30" if lang_key == 'vi' else "VN30 PORTFOLIO OPTIMIZER"
-    pdf.cell(0, 10, title, ln=True, align='C')
-    pdf.set_font("Helvetica", "", 9)
-    pdf.set_text_color(100, 100, 100)
+    set_font(15, "B")
+    title = "TOI UU HOA DANH MUC VN30" if lang_key == 'vi' else "VN30 PORTFOLIO OPTIMIZER"
+    if FONT:
+        title = "TỐI ƯU HÓA DANH MỤC VN30" if lang_key == 'vi' else "VN30 PORTFOLIO OPTIMIZER"
+    pdf.cell(0, 10, title, new_x=XPos.LMARGIN, new_y=YPos.NEXT, align='C')
 
-    # KPI summary line
+    set_font(9)
+    pdf.set_text_color(100, 100, 100)
     kpi_line = (
         f"Return: {result['port_return']:.2%}  |  "
         f"Vol: {result['port_volatility']:.2%}  |  "
@@ -645,7 +678,7 @@ def build_pdf(fig_donut, fig_bar, fig_heat, result, eq_stats, lang_key):
         f"EW Return: {eq_stats['port_return']:.2%}  |  "
         f"EW Vol: {eq_stats['port_volatility']:.2%}"
     )
-    pdf.cell(0, 6, kpi_line, ln=True, align='C')
+    pdf.cell(0, 6, kpi_line, new_x=XPos.LMARGIN, new_y=YPos.NEXT, align='C')
     pdf.set_text_color(0, 0, 0)
     pdf.ln(3)
 
@@ -663,11 +696,13 @@ def build_pdf(fig_donut, fig_bar, fig_heat, result, eq_stats, lang_key):
             f.write(img_bytes)
         pdf.image(path, x=x, y=pdf.get_y(), w=w_mm, h=h_mm)
 
-    # ── Trang 2: Heatmap + Bảng phân bổ ─────────────────────────────────
+    # ── Trang 2: Heatmap ──────────────────────────────────────────────────
     pdf.add_page()
-    pdf.set_font("Helvetica", "B", 11)
-    heat_title = "MA TRẬN TƯƠNG QUAN" if lang_key == 'vi' else "CORRELATION MATRIX"
-    pdf.cell(0, 8, heat_title, ln=True, align='C')
+    set_font(11, "B")
+    heat_title = "MA TRAN TUONG QUAN" if lang_key == 'vi' else "CORRELATION MATRIX"
+    if FONT:
+        heat_title = "MA TRẬN TƯƠNG QUAN" if lang_key == 'vi' else "CORRELATION MATRIX"
+    pdf.cell(0, 8, heat_title, new_x=XPos.LMARGIN, new_y=YPos.NEXT, align='C')
     pdf.ln(2)
 
     heat_bytes = pio.to_image(fig_heat, format="png",
@@ -680,11 +715,11 @@ def build_pdf(fig_donut, fig_bar, fig_heat, result, eq_stats, lang_key):
     pdf.ln(3)
 
     # Footer
-    pdf.set_font("Helvetica", "I", 8)
+    set_font(8, "I")
     pdf.set_text_color(130, 130, 130)
     pdf.cell(0, 6,
              "Markowitz (1952) Portfolio Selection · VCI via vnstock · github.com/MCTGiang/vn-portfolio-optimizer",
-             ln=True, align='C')
+             new_x=XPos.LMARGIN, new_y=YPos.NEXT, align='C')
 
     # fpdf2: output() trả về bytes trực tiếp
     return pdf.output()
@@ -705,6 +740,6 @@ try:
 except Exception as pdf_err:
     with pdf_placeholder:
         st.caption(f"⚠️ PDF: {pdf_err}")
-        
+
 # ── Footer ────────────────────────────────────────────────────────────────────
 st.markdown(f"<div class='footer'>{L['footer']}</div>", unsafe_allow_html=True)
