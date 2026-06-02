@@ -79,11 +79,6 @@ def min_variance_portfolio(tickers: list,
             equal_weights_vol: float — equal weights baseline volatility
             improvement_pct  : float — volatility reduction vs equal weights
     """
-    # Lấy end date từ DB nếu không truyền vào
-    if end is None:
-        from data_loader import get_db_summary
-        summary = get_db_summary()
-        end = summary['end_date'].max()
         
     N = len(tickers)
     if N < 2:
@@ -117,7 +112,7 @@ def min_variance_portfolio(tickers: list,
     cov_np = cov.values   # convert to numpy for scipy
 
     # ── Optimization setup ──────────────────────────────────────────────────
-    w0 = np.array([1.0 / N] * N)   # warm start: equal weights
+    w0 = np.full(N, 1.0/N)   # warm start: equal weights
 
     constraints = [
         {'type': 'eq', 'fun': lambda w: np.sum(w) - 1.0}

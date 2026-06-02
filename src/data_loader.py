@@ -31,7 +31,6 @@ def get_connection() -> sqlite3.Connection:
     os.makedirs(os.path.dirname(os.path.abspath(DB_PATH)), exist_ok=True)
     return sqlite3.connect(DB_PATH)
 
-
 def create_table() -> None:
     conn = get_connection()
     conn.execute('''

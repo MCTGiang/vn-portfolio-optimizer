@@ -12,6 +12,8 @@ import plotly.graph_objects as go
 import pandas as pd
 import numpy as np
 import io
+from fpdf import FPDF
+import plotly.io as pio
 import streamlit.components.v1 as components
 from datetime import datetime
 
@@ -354,8 +356,11 @@ with st.sidebar:
     if st.sidebar.button(f"🔄 {L['btn_update']}", width='stretch'):
         with st.status(f"🚀 {L['status_updating']}", expanded=True) as status:
             try:
-                from data_loader import update_db
-                update_db(start='2021-01-01') 
+                from data_loader import update_db, get_db_summary
+                # Latest day in DB — only fetch new data from that point onward to minimize API calls and speed up the update process
+                summary = get_db_summary()
+                latest_date_str = summary['end_date'].max()
+                update_db(start=latest_date_str) 
                 
                 st.cache_data.clear()
                 
@@ -400,13 +405,8 @@ with c_title:
     st.markdown(f"<div class='header-glossary'>{L['glossary']}</div>", unsafe_allow_html=True)
 
 with c_pdf:
-    # PDF export via browser print dialog (window.parent.print for iframe context)
-    if st.button("📄 " + L['exp_pdf'], key="btn_pdf", width='stretch'):
-        # Tạo một iframe ẩn kích thước 0x0 để chạy Javascript tác động lên cửa sổ cha
-        components.html(
-            "<script>window.parent.print();</script>",
-            height=0, width=0
-        )
+    # Placeholder — nút PDF sẽ được render bên dưới sau khi biểu đồ đã sẵn sàng
+    pdf_placeholder = st.empty()
 
 st.markdown("<hr>", unsafe_allow_html=True)
 
@@ -616,6 +616,95 @@ st.dataframe(
         L['col_vol']   : st.column_config.NumberColumn(L['col_vol'],  format="%.1f%%", alignment="center"),
     }
 )
+# ── PDF Export — render sau khi tất cả biểu đồ đã sẵn sàng ──────────────────
+def build_pdf(fig_donut, fig_bar, fig_heat, result, eq_stats, lang_key):
+    """
+    Render các biểu đồ Plotly thành PNG độ phân giải cao (scale=2 = 200dpi)
+    rồi ghép vào PDF A4 landscape bằng fpdf2.
+    Trả về bytes để dùng với st.download_button.
+    """
+    from fpdf import FPDF
+    import plotly.io as pio, tempfile, os
 
+    pdf = FPDF(orientation='L', unit='mm', format='A4')
+    pdf.set_auto_page_break(auto=True, margin=10)
+
+    # ── Trang 1: Tiêu đề + KPI + Donut + Bar ──────────────────────────────
+    pdf.add_page()
+    pdf.set_font("Helvetica", "B", 15)
+    title = "TỐI ƯU HÓA DANH MỤC VN30" if lang_key == 'vi' else "VN30 PORTFOLIO OPTIMIZER"
+    pdf.cell(0, 10, title, ln=True, align='C')
+    pdf.set_font("Helvetica", "", 9)
+    pdf.set_text_color(100, 100, 100)
+
+    # KPI summary line
+    kpi_line = (
+        f"Return: {result['port_return']:.2%}  |  "
+        f"Vol: {result['port_volatility']:.2%}  |  "
+        f"Sharpe: {result['sharpe_ratio']:.3f}  |  "
+        f"EW Return: {eq_stats['port_return']:.2%}  |  "
+        f"EW Vol: {eq_stats['port_volatility']:.2%}"
+    )
+    pdf.cell(0, 6, kpi_line, ln=True, align='C')
+    pdf.set_text_color(0, 0, 0)
+    pdf.ln(3)
+
+    # Render Donut + Bar side by side trên trang 1
+    tmpdir = tempfile.mkdtemp()
+    charts_p1 = [(fig_donut, "donut", 130, 90), (fig_bar, "bar", 130, 90)]
+    x_positions = [10, 148]  # A4 landscape = 297mm wide
+    for (fig, name, w_mm, h_mm), x in zip(charts_p1, x_positions):
+        img_bytes = pio.to_image(fig, format="png",
+                                 width=int(w_mm * 4),
+                                 height=int(h_mm * 4),
+                                 scale=2)
+        path = os.path.join(tmpdir, f"{name}.png")
+        with open(path, "wb") as f:
+            f.write(img_bytes)
+        pdf.image(path, x=x, y=pdf.get_y(), w=w_mm, h=h_mm)
+
+    # ── Trang 2: Heatmap + Bảng phân bổ ─────────────────────────────────
+    pdf.add_page()
+    pdf.set_font("Helvetica", "B", 11)
+    heat_title = "MA TRẬN TƯƠNG QUAN" if lang_key == 'vi' else "CORRELATION MATRIX"
+    pdf.cell(0, 8, heat_title, ln=True, align='C')
+    pdf.ln(2)
+
+    heat_bytes = pio.to_image(fig_heat, format="png",
+                              width=1600, height=max(600, 40 * len(result['tickers'])),
+                              scale=2)
+    heat_path = os.path.join(tmpdir, "heat.png")
+    with open(heat_path, "wb") as f:
+        f.write(heat_bytes)
+    pdf.image(heat_path, x=10, y=pdf.get_y(), w=277)
+    pdf.ln(3)
+
+    # Footer
+    pdf.set_font("Helvetica", "I", 8)
+    pdf.set_text_color(130, 130, 130)
+    pdf.cell(0, 6,
+             "Markowitz (1952) Portfolio Selection · VCI via vnstock · github.com/MCTGiang/vn-portfolio-optimizer",
+             ln=True, align='C')
+
+    # fpdf2: output() trả về bytes trực tiếp
+    return pdf.output()
+
+
+# Render nút PDF vào placeholder đã tạo ở header (sau khi biểu đồ sẵn sàng)
+try:
+    pdf_bytes = build_pdf(fig_pie, fig_bar, fig_heat, result, eq_stats,
+                          st.session_state['lang'])
+    with pdf_placeholder:
+        st.download_button(
+            label=f"📄 {L['exp_pdf']}",
+            data=pdf_bytes,
+            file_name="portfolio_optimization.pdf",
+            mime="application/pdf",
+            width='stretch',
+        )
+except Exception as pdf_err:
+    with pdf_placeholder:
+        st.caption(f"⚠️ PDF: {pdf_err}")
+        
 # ── Footer ────────────────────────────────────────────────────────────────────
 st.markdown(f"<div class='footer'>{L['footer']}</div>", unsafe_allow_html=True)
