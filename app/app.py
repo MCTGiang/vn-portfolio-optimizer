@@ -617,43 +617,78 @@ st.dataframe(
 )
 
 # ── PDF Export — render sau khi tất cả biểu đồ đã sẵn sàng ──────────────────
-def build_pdf(fig_donut, fig_bar, fig_heat, result, eq_stats, lang_key):
+# ── PDF Export — comprehensive layout matching dashboard ─────────────────────
+def build_pdf(fig_donut, fig_bar, fig_heat, result, eq_stats, lang_key,
+              selected_tickers, w_eq_arr, std_arr_val):
     """
-    Render các biểu đồ Plotly thành PNG độ phân giải cao (scale=2 = 200dpi)
-    rồi ghép vào PDF A4 landscape bằng fpdf2.
-    Trả về bytes để dùng với st.download_button.
+    Tạo PDF báo cáo đầy đủ giống dashboard:
+    Trang 1: Header xanh + 4 KPI cards + Donut + Bar (2 cột)
+    Trang 2: Header xanh + Heatmap + Bảng chi tiết phân bổ
+    Dùng matplotlib (không cần Chrome/kaleido).
     """
     from fpdf import FPDF
     from fpdf.enums import XPos, YPos
-    import tempfile, os
+    import matplotlib
+    matplotlib.use('Agg')
+    import matplotlib.pyplot as plt
+    from matplotlib import font_manager
+    import numpy as _np
+    import tempfile, os, glob
 
-    # ── Dùng fpdf2 built-in Unicode font (không cần file .ttf ngoài) ──────
-    class UnicodePDF(FPDF):
-        pass
+    L_cur = LANG[lang_key]
 
-    pdf = UnicodePDF(orientation='L', unit='mm', format='A4')
-    pdf.set_auto_page_break(auto=True, margin=10)
+    # ── 1. Setup Unicode font (cho cả PDF và matplotlib) ──────────────────
+    # Tìm DejaVuSans trong nhiều vị trí khả dĩ
+    font_search_dirs = [
+        os.path.join(os.path.dirname(__file__), 'fonts'),
+        os.path.join(os.path.dirname(__file__), '..', 'fonts'),
+        '/usr/share/fonts/truetype/dejavu',
+        '/usr/share/fonts/TTF',
+        '/Library/Fonts',
+        'C:/Windows/Fonts',
+    ]
+    font_regular = font_bold = font_italic = None
+    for d in font_search_dirs:
+        for pat in ['DejaVuSans.ttf', 'DejaVuSans-*.ttf']:
+            for f in glob.glob(os.path.join(d, pat)):
+                fname = os.path.basename(f).lower()
+                if 'bold' in fname and font_bold is None:
+                    font_bold = f
+                elif 'oblique' in fname and font_italic is None:
+                    font_italic = f
+                elif fname == 'dejavusans.ttf' and font_regular is None:
+                    font_regular = f
+        if font_regular and font_bold:
+            break
 
-    # fpdf2 >= 2.7 hỗ trợ font "helvetica" với unicode nếu dùng
-    # core_fonts_encoding — cách chắc chắn nhất là strip dấu tiếng Việt
-    # hoặc dùng DejaVuSans (bundled sẵn trong fpdf2 >= 2.7.4)
-    try:
-        # Thử DejaVuSans bundled trong fpdf2 >= 2.7.4
-        pdf.add_font("DejaVu", style="",  fname="DejaVuSansCondensed.ttf",        uni=True)
-        pdf.add_font("DejaVu", style="B", fname="DejaVuSansCondensed-Bold.ttf",   uni=True)
-        pdf.add_font("DejaVu", style="I", fname="DejaVuSansCondensed-Oblique.ttf",uni=True)
-        FONT = "DejaVu"
-    except Exception:
-        # Fallback: fpdf2 >= 2.7.9 có thể dùng "helvetica" với latin subset
-        # → thay ký tự Unicode bằng ASCII tương đương
-        FONT = None
+    # Set matplotlib font (nếu có DejaVu — tránh "missing glyph" cho dấu Việt)
+    if font_regular:
+        try:
+            font_manager.fontManager.addfont(font_regular)
+            if font_bold:   font_manager.fontManager.addfont(font_bold)
+            if font_italic: font_manager.fontManager.addfont(font_italic)
+            plt.rcParams['font.family']      = 'DejaVu Sans'
+            plt.rcParams['font.sans-serif']  = ['DejaVu Sans']
+        except Exception:
+            pass
 
-    def safe_text(text):
-        """Nếu không có Unicode font, chuyển ký tự tiếng Việt về ASCII."""
-        if FONT:
-            return text
-        import unicodedata
-        return unicodedata.normalize('NFKD', text).encode('ascii', 'ignore').decode('ascii')
+    # ── 2. Khởi tạo PDF ───────────────────────────────────────────────────
+    pdf = FPDF(orientation='L', unit='mm', format='A4')
+    pdf.set_auto_page_break(auto=False)  # tự quản lý layout
+
+    # Đăng ký font Unicode cho PDF
+    FONT = None
+    if font_regular and font_bold:
+        try:
+            pdf.add_font("DejaVu", style="",  fname=font_regular)
+            pdf.add_font("DejaVu", style="B", fname=font_bold)
+            if font_italic:
+                pdf.add_font("DejaVu", style="I", fname=font_italic)
+            else:
+                pdf.add_font("DejaVu", style="I", fname=font_regular)
+            FONT = "DejaVu"
+        except Exception:
+            FONT = None
 
     def set_font(size, style=""):
         if FONT:
@@ -661,160 +696,294 @@ def build_pdf(fig_donut, fig_bar, fig_heat, result, eq_stats, lang_key):
         else:
             pdf.set_font("Helvetica", style=style, size=size)
 
-    # ── Trang 1: Tiêu đề + KPI + Donut + Bar ──────────────────────────────
-    pdf.add_page()
-    set_font(15, "B")
-    title = "TOI UU HOA DANH MUC VN30" if lang_key == 'vi' else "VN30 PORTFOLIO OPTIMIZER"
-    if FONT:
-        title = "TỐI ƯU HÓA DANH MỤC VN30" if lang_key == 'vi' else "VN30 PORTFOLIO OPTIMIZER"
-    pdf.cell(0, 10, title, new_x=XPos.LMARGIN, new_y=YPos.NEXT, align='C')
+    def safe(text):
+        """Strip dấu tiếng Việt nếu không có Unicode font."""
+        if FONT:
+            return text
+        import unicodedata
+        return unicodedata.normalize('NFKD', text).encode('ascii', 'ignore').decode('ascii')
 
-    set_font(9)
-    pdf.set_text_color(100, 100, 100)
-    kpi_line = (
-        f"Return: {result['port_return']:.2%}  |  "
-        f"Vol: {result['port_volatility']:.2%}  |  "
-        f"Sharpe: {result['sharpe_ratio']:.3f}  |  "
-        f"EW Return: {eq_stats['port_return']:.2%}  |  "
-        f"EW Vol: {eq_stats['port_volatility']:.2%}"
-    )
-    pdf.cell(0, 6, kpi_line, new_x=XPos.LMARGIN, new_y=YPos.NEXT, align='C')
-    pdf.set_text_color(0, 0, 0)
-    pdf.ln(3)
-
-    # ── Render biểu đồ bằng matplotlib — không cần Chrome/kaleido ────────
-    import matplotlib
-    matplotlib.use('Agg')          # non-interactive backend, an toàn trên server
-    import matplotlib.pyplot as plt
-    import matplotlib.patches as mpatches
-    import numpy as _np
+    # ── 3. Helper vẽ biểu đồ bằng matplotlib ──────────────────────────────
     tmpdir = tempfile.mkdtemp()
+    BRAND  = '#146026'
+    LIME   = '#80c433'
+    GRAY_BG = '#E5E7EB'
 
-    def _save_donut(fig_pl, path, tickers, weights, colors_list, others_label):
-        """Vẽ lại donut chart bằng matplotlib."""
-        mask  = weights >= 0.03
-        lbls  = [t for t, m in zip(tickers, mask) if m]
-        vals  = weights[mask].tolist()
+    DONUT_COLORS_MPL = ['#146026', '#4CAF50', '#95bc26', '#cbdd56', '#A8D5A2',
+                        '#D4EDDA', '#6B7280', '#2D6A4F', '#52B788', '#B7E4C7',
+                        '#40916C', '#74C69D']
+
+    def draw_donut(path, tickers, weights, others_label):
+        mask = weights >= 0.03
+        lbls = [t for t, m in zip(tickers, mask) if m]
+        vals = weights[mask].tolist()
         other_sum = weights[~mask].sum()
         if other_sum > 0.001:
             lbls.append(others_label); vals.append(other_sum)
-        clrs = colors_list[:len(vals)]
+        clrs = DONUT_COLORS_MPL[:len(vals)]
 
-        fig, ax = plt.subplots(figsize=(5, 4), facecolor='white')
+        fig, ax = plt.subplots(figsize=(5.5, 4.2), facecolor='white')
         wedges, texts, autotexts = ax.pie(
             vals, labels=lbls, colors=clrs,
             autopct='%1.1f%%', startangle=90,
-            wedgeprops=dict(width=0.45, edgecolor='white', linewidth=1.5),
-            pctdistance=1.18, labeldistance=1.35,
+            wedgeprops=dict(width=0.4, edgecolor='white', linewidth=2),
+            pctdistance=0.78, labeldistance=1.1,
+            textprops={'fontsize': 9}
         )
-        for t in texts:    t.set_fontsize(7)
-        for t in autotexts: t.set_fontsize(7)
-        ax.set_title("Phan bo ty trong" if lang_key != 'vi' else "Phân bổ tỷ trọng",
-                     fontsize=9, pad=8)
-        plt.tight_layout()
-        plt.savefig(path, dpi=180, bbox_inches='tight', facecolor='white')
+        for at in autotexts:
+            at.set_color('white'); at.set_fontweight('bold'); at.set_fontsize(8)
+        ax.axis('equal')
+        plt.tight_layout(pad=0.5)
+        plt.savefig(path, dpi=200, bbox_inches='tight', facecolor='white')
         plt.close(fig)
 
-    def _save_bar(path, m_vals, e_vals, m_labels, mvp_lbl, ew_lbl):
-        """Vẽ lại grouped bar chart bằng matplotlib."""
-        x   = _np.arange(len(m_labels))
-        w   = 0.35
-        fig, ax = plt.subplots(figsize=(5, 4), facecolor='white')
-        b1 = ax.bar(x - w/2, m_vals, w, label=mvp_lbl,  color='#146026')
-        b2 = ax.bar(x + w/2, e_vals, w, label=ew_lbl,   color='#E5E7EB', edgecolor='#9CA3AF')
-        ax.bar_label(b1, fmt=lambda v: f"{v:.1%}" if v < 2 else f"{v:.3f}", fontsize=7, padding=2)
-        ax.bar_label(b2, fmt=lambda v: f"{v:.1%}" if v < 2 else f"{v:.3f}", fontsize=7, padding=2)
-        ax.set_xticks(x); ax.set_xticklabels(m_labels, fontsize=8)
-        ax.set_ylim(0, max(max(m_vals), max(e_vals)) * 1.3)
+    def draw_bar(path, m_vals, e_vals, m_labels, mvp_lbl, ew_lbl):
+        x = _np.arange(len(m_labels))
+        w = 0.35
+        fig, ax = plt.subplots(figsize=(5.5, 4.2), facecolor='white')
+        b1 = ax.bar(x - w/2, m_vals, w, label=mvp_lbl, color=BRAND)
+        b2 = ax.bar(x + w/2, e_vals, w, label=ew_lbl,  color=GRAY_BG,
+                    edgecolor='#9CA3AF', linewidth=0.5)
+        for bars, vals in [(b1, m_vals), (b2, e_vals)]:
+            for bar, v in zip(bars, vals):
+                txt = f'{v:.1%}' if abs(v) < 2 else f'{v:.3f}'
+                ax.text(bar.get_x() + bar.get_width()/2, bar.get_height(),
+                        txt, ha='center', va='bottom', fontsize=8)
+        ax.set_xticks(x); ax.set_xticklabels(m_labels, fontsize=9)
+        ax.set_ylim(0, max(max(m_vals), max(e_vals)) * 1.25)
         ax.yaxis.set_visible(False)
-        ax.spines[['top','right','left']].set_visible(False)
-        ax.legend(fontsize=8, loc='upper right')
-        ax.set_title("MVP vs Dong deu" if lang_key != 'vi' else "MVP vs Đồng đều",
-                     fontsize=9)
-        plt.tight_layout()
-        plt.savefig(path, dpi=180, bbox_inches='tight', facecolor='white')
+        for s in ['top','right','left']:
+            ax.spines[s].set_visible(False)
+        ax.spines['bottom'].set_color('#9CA3AF')
+        ax.legend(fontsize=9, loc='upper right', frameon=False)
+        plt.tight_layout(pad=0.5)
+        plt.savefig(path, dpi=200, bbox_inches='tight', facecolor='white')
         plt.close(fig)
 
-    def _save_heatmap(path, corr_matrix, tickers):
-        """Vẽ lại heatmap bằng matplotlib."""
-        n   = len(tickers)
-        fig, ax = plt.subplots(figsize=(max(6, n * 0.55), max(5, n * 0.5)),
+    def draw_heatmap(path, corr_matrix, tickers):
+        n = len(tickers)
+        fig, ax = plt.subplots(figsize=(max(7, n * 0.6), max(5.5, n * 0.55)),
                                facecolor='white')
-        import matplotlib.colors as mcolors
         cmap = matplotlib.colors.LinearSegmentedColormap.from_list(
             'vn', ['#146026', '#52B788', '#FFE08A', '#FFA04A', '#DC2626'])
         im = ax.imshow(corr_matrix, cmap=cmap, vmin=-0.2, vmax=1.0, aspect='auto')
-        ax.set_xticks(range(n)); ax.set_xticklabels(tickers, rotation=45,
-                                                     ha='right', fontsize=7)
-        ax.set_yticks(range(n)); ax.set_yticklabels(tickers, fontsize=7)
+        ax.set_xticks(range(n)); ax.set_xticklabels(tickers, rotation=0, fontsize=8)
+        ax.set_yticks(range(n)); ax.set_yticklabels(tickers, fontsize=8)
         for i in range(n):
             for j in range(n):
                 val = corr_matrix[i, j]
-                clr = 'white' if val > 0.7 or val < 0.1 else 'black'
+                clr = 'white' if val > 0.7 or val < 0.15 else '#1F2937'
                 ax.text(j, i, f'{val:.2f}', ha='center', va='center',
-                        fontsize=5.5, color=clr)
-        plt.colorbar(im, ax=ax, shrink=0.8)
-        ax.set_title("Ma tran tuong quan" if lang_key != 'vi' else "Ma trận tương quan",
-                     fontsize=9, pad=8)
-        plt.tight_layout()
-        plt.savefig(path, dpi=180, bbox_inches='tight', facecolor='white')
+                        fontsize=7, color=clr)
+        cbar = plt.colorbar(im, ax=ax, shrink=0.7)
+        cbar.ax.tick_params(labelsize=7)
+        plt.tight_layout(pad=0.3)
+        plt.savefig(path, dpi=200, bbox_inches='tight', facecolor='white')
         plt.close(fig)
 
-    # Tạo ảnh
+    # ── 4. Tạo ảnh ────────────────────────────────────────────────────────
     tickers_list = list(result['tickers'])
     weights_arr  = _np.array(result['weights'])
-    donut_path   = os.path.join(tmpdir, "donut.png")
-    bar_path     = os.path.join(tmpdir, "bar.png")
-    heat_path    = os.path.join(tmpdir, "heat.png")
-    others_lbl   = "Khac" if lang_key != 'vi' else "Khác"
+    others_lbl   = safe("Khác") if lang_key == 'vi' else "Others"
 
-    _save_donut(fig_donut, donut_path, tickers_list, weights_arr,
-                DONUT_COLORS, others_lbl)
+    donut_path = os.path.join(tmpdir, "donut.png")
+    bar_path   = os.path.join(tmpdir, "bar.png")
+    heat_path  = os.path.join(tmpdir, "heat.png")
 
-    L_cur = LANG[lang_key]
-    m_labels = [L_cur['kpi_ret'], L_cur['kpi_vol'], L_cur['kpi_sharpe']]
+    draw_donut(donut_path, tickers_list, weights_arr, others_lbl)
+
+    m_labels = [safe(L_cur['kpi_ret']), safe(L_cur['kpi_vol']), safe(L_cur['kpi_sharpe'])]
     m_vals   = [result['port_return'], result['port_volatility'], result['sharpe_ratio']]
     e_vals   = [eq_stats['port_return'], eq_stats['port_volatility'], eq_stats['sharpe_ratio']]
-    _save_bar(bar_path, m_vals, e_vals, m_labels,
-              L_cur['mvp_lbl'], L_cur['ew_lbl'])
+    draw_bar(bar_path, m_vals, e_vals, m_labels,
+             safe(L_cur['mvp_lbl']), safe(L_cur['ew_lbl']))
 
-    import numpy as _np2
-    std_a = _np2.sqrt(_np2.diag(result['cov'].values))
-    corr  = result['cov'].values / _np2.outer(std_a, std_a)
-    _save_heatmap(heat_path, corr, tickers_list)
+    corr = result['cov'].values / _np.outer(std_arr_val, std_arr_val)
+    draw_heatmap(heat_path, corr, tickers_list)
 
-    # Trang 1: Donut + Bar song song
-    y_after_header = pdf.get_y()
-    pdf.image(donut_path, x=10,  y=y_after_header, w=133, h=95)
-    pdf.image(bar_path,   x=152, y=y_after_header, w=133, h=95)
-
-    # ── Trang 2: Heatmap ──────────────────────────────────────────────────
+    # ╔════════════════════════════════════════════════════════════════════╗
+    # ║                          TRANG 1                                    ║
+    # ╚════════════════════════════════════════════════════════════════════╝
     pdf.add_page()
-    set_font(11, "B")
-    heat_title = "MA TRAN TUONG QUAN" if lang_key == 'vi' else "CORRELATION MATRIX"
-    if FONT:
-        heat_title = "MA TRẬN TƯƠNG QUAN" if lang_key == 'vi' else "CORRELATION MATRIX"
-    pdf.cell(0, 8, heat_title, new_x=XPos.LMARGIN, new_y=YPos.NEXT, align='C')
-    pdf.ln(2)
 
-    pdf.image(heat_path, x=10, y=pdf.get_y(), w=277)
-    pdf.ln(3)
+    # ── Header xanh ──────────────────────────────────────────────────────
+    pdf.set_fill_color(20, 96, 38)   # #146026
+    pdf.rect(0, 0, 297, 22, style='F')
+    pdf.set_text_color(255, 255, 255)
+    set_font(16, "B")
+    pdf.set_xy(10, 5)
+    title = safe("TỐI ƯU HÓA DANH MỤC VN30") if lang_key == 'vi' else "VN30 PORTFOLIO OPTIMIZER"
+    pdf.cell(0, 8, title, new_x=XPos.LMARGIN, new_y=YPos.NEXT, align='L')
+    set_font(9, "")
+    pdf.set_xy(10, 13)
+    subt = safe("Minimum Variance Portfolio · Markowitz (1952) · Rf = 4.5% (SBV)")
+    pdf.cell(0, 5, subt, new_x=XPos.LMARGIN, new_y=YPos.NEXT, align='L')
+    pdf.set_text_color(31, 41, 55)
+    pdf.ln(6)
 
-    # Footer
-    set_font(8, "I")
+    # ── 4 KPI cards ───────────────────────────────────────────────────────
+    kpi_y = 28
+    kpi_w = 67
+    kpi_h = 22
+    kpi_x_start = 10
+    kpi_gap = 3
+
+    n_active = int((weights_arr > 0.001).sum())
+    delta_ret    = result['port_return']     - eq_stats['port_return']
+    delta_vol    = result['port_volatility'] - eq_stats['port_volatility']
+    delta_sharpe = result['sharpe_ratio']    - eq_stats['sharpe_ratio']
+    vol_red_pct  = result.get('improvement_pct',
+                              (eq_stats['port_volatility'] - result['port_volatility']) /
+                              eq_stats['port_volatility'] * 100)
+
+    kpis = [
+        (safe(L_cur['kpi_ret']),    f"{result['port_return']:.2%}",
+         f"{'+' if delta_ret>=0 else ''}{delta_ret*100:.2f}%", delta_ret > 0),
+        (safe(L_cur['kpi_vol']),    f"{result['port_volatility']:.2%}",
+         f"{'+' if delta_vol>=0 else ''}{delta_vol*100:.2f}%", delta_vol < 0),
+        (safe(L_cur['kpi_sharpe']), f"{result['sharpe_ratio']:.3f}",
+         f"{'+' if delta_sharpe>=0 else ''}{delta_sharpe:.3f}", delta_sharpe > 0),
+        (safe(L_cur['kpi_active']), f"{n_active} / {len(tickers_list)}",
+         safe(f"Rủi ro giảm {vol_red_pct:.1f}%") if lang_key == 'vi'
+         else f"Vol reduced {vol_red_pct:.1f}%", True),
+    ]
+
+    for i, (lbl, val, delta_str, is_good) in enumerate(kpis):
+        x = kpi_x_start + i * (kpi_w + kpi_gap)
+        # card bg
+        pdf.set_fill_color(249, 250, 251)  # #F9FAFB
+        pdf.set_draw_color(229, 231, 235)
+        pdf.rect(x, kpi_y, kpi_w, kpi_h, style='DF')
+        # label
+        pdf.set_xy(x + 3, kpi_y + 2)
+        pdf.set_text_color(107, 114, 128)
+        set_font(7, "B")
+        pdf.cell(kpi_w - 6, 3, lbl, new_x=XPos.LMARGIN, new_y=YPos.NEXT, align='L')
+        # value
+        pdf.set_xy(x + 3, kpi_y + 7)
+        pdf.set_text_color(31, 41, 55)
+        set_font(13, "B")
+        pdf.cell(kpi_w - 6, 7, val, new_x=XPos.LMARGIN, new_y=YPos.NEXT, align='L')
+        # delta
+        pdf.set_xy(x + 3, kpi_y + 16)
+        if is_good:
+            pdf.set_text_color(22, 163, 74)
+        else:
+            pdf.set_text_color(220, 38, 38)
+        set_font(7, "")
+        arrow = "▲" if (i < 3 and is_good) or (i == 1 and not is_good) else "▼"
+        # Simpler arrows that DejaVu supports
+        arrow = "+" if is_good and i != 1 else ("-" if not is_good else "v")
+        if i == 3: arrow = "v"
+        pdf.cell(kpi_w - 6, 3, f"{arrow} {delta_str}",
+                 new_x=XPos.LMARGIN, new_y=YPos.NEXT, align='L')
+
+    # ── Donut + Bar song song ────────────────────────────────────────────
+    chart_y = kpi_y + kpi_h + 6
+    chart_h = 90
+    pdf.set_text_color(31, 41, 55)
+
+    # Tiêu đề biểu đồ
+    set_font(10, "B")
+    pdf.set_xy(10, chart_y)
+    pdf.cell(140, 5, safe(L_cur['sec_alloc']), align='L')
+    pdf.set_xy(152, chart_y)
+    pdf.cell(140, 5, safe(L_cur['sec_cmp']), align='L')
+    # underline
+    pdf.set_draw_color(20, 96, 38); pdf.set_line_width(0.5)
+    pdf.line(10, chart_y + 5.5, 60, chart_y + 5.5)
+    pdf.line(152, chart_y + 5.5, 202, chart_y + 5.5)
+
+    # Render ảnh
+    pdf.image(donut_path, x=10,  y=chart_y + 7, w=135, h=chart_h)
+    pdf.image(bar_path,   x=152, y=chart_y + 7, w=135, h=chart_h)
+
+    # Footer trang 1
+    pdf.set_y(200)
     pdf.set_text_color(130, 130, 130)
-    pdf.cell(0, 6,
-             "Markowitz (1952) Portfolio Selection · VCI via vnstock · github.com/MCTGiang/vn-portfolio-optimizer",
+    set_font(7, "I")
+    pdf.cell(0, 4, safe("Trang 1/2 · Markowitz (1952) Portfolio Selection · VCI via vnstock"),
              new_x=XPos.LMARGIN, new_y=YPos.NEXT, align='C')
 
-    # fpdf2: output() trả về bytes trực tiếp
+    # ╔════════════════════════════════════════════════════════════════════╗
+    # ║                          TRANG 2                                    ║
+    # ╚════════════════════════════════════════════════════════════════════╝
+    pdf.add_page()
+
+    # ── Header xanh trang 2 ──────────────────────────────────────────────
+    pdf.set_fill_color(20, 96, 38)
+    pdf.rect(0, 0, 297, 16, style='F')
+    pdf.set_text_color(255, 255, 255)
+    set_font(13, "B")
+    pdf.set_xy(10, 4)
+    pdf.cell(0, 8, safe(L_cur['sec_heat']) + "  &  " + safe(L_cur['sec_tbl']),
+             new_x=XPos.LMARGIN, new_y=YPos.NEXT, align='L')
+
+    pdf.set_text_color(31, 41, 55)
+    pdf.set_y(20)
+
+    # ── Heatmap (full width) ─────────────────────────────────────────────
+    heat_h = 110 if len(tickers_list) <= 10 else 130
+    pdf.image(heat_path, x=10, y=22, w=277, h=heat_h)
+
+    # ── Bảng chi tiết phân bổ ────────────────────────────────────────────
+    table_y = 22 + heat_h + 4
+    pdf.set_y(table_y)
+
+    # Header bảng
+    pdf.set_fill_color(20, 96, 38)
+    pdf.set_text_color(255, 255, 255)
+    set_font(8, "B")
+    col_w = [40, 55, 55, 55, 55]  # tổng 260
+    col_x = 18
+    headers = [safe(L_cur['col_ticker']), safe(L_cur['col_mvp']),
+               safe(L_cur['col_ew']),     safe(L_cur['col_ret']),
+               safe(L_cur['col_vol'])]
+    pdf.set_x(col_x)
+    for w, h in zip(col_w, headers):
+        pdf.cell(w, 6, h, border=0, align='C', fill=True)
+    pdf.ln(6)
+
+    # Sort theo MVP weight giảm dần
+    sort_idx = sorted(range(len(tickers_list)),
+                      key=lambda i: -weights_arr[i])
+    pdf.set_text_color(31, 41, 55)
+    set_font(8, "")
+    row_count_max = 10  # hiển thị tối đa 10 dòng trong PDF cho gọn
+    rows_to_show = sort_idx[:row_count_max]
+    for idx_pos, i in enumerate(rows_to_show):
+        if idx_pos % 2 == 0:
+            pdf.set_fill_color(249, 250, 251)
+        else:
+            pdf.set_fill_color(255, 255, 255)
+        pdf.set_x(col_x)
+        cells = [
+            tickers_list[i],
+            f"{weights_arr[i]*100:.1f}%",
+            f"{w_eq_arr[i]*100:.1f}%",
+            f"{result['mu'].values[i]*100:.1f}%",
+            f"{std_arr_val[i]*100:.1f}%",
+        ]
+        for w, c in zip(col_w, cells):
+            pdf.cell(w, 5.5, c, border=0, align='C', fill=True)
+        pdf.ln(5.5)
+
+    # Footer trang 2
+    pdf.set_y(200)
+    pdf.set_text_color(130, 130, 130)
+    set_font(7, "I")
+    pdf.cell(0, 4,
+             safe("Trang 2/2 · github.com/MCTGiang/vn-portfolio-optimizer · MSSV 202490043"),
+             new_x=XPos.LMARGIN, new_y=YPos.NEXT, align='C')
+
     return bytes(pdf.output())
 
 
-# Render nút PDF vào placeholder đã tạo ở header (sau khi biểu đồ sẵn sàng)
+
 try:
     pdf_bytes = build_pdf(fig_pie, fig_bar, fig_heat, result, eq_stats,
-                          st.session_state['lang'])
+                          st.session_state['lang'],
+                          selected, w_eq, std_arr)
     with pdf_placeholder:
         st.download_button(
             label=f"📄 {L['exp_pdf']}",
