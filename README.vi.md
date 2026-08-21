@@ -6,8 +6,7 @@
 
 ![Demo dashboard](./docs/images/demo.gif)
 
-🚀 **[Dùng thử tại mctgiangproject1.streamlit.app →](https://mctgiangproject1.streamlit.app)**
-
+🚀 **[Dùng thử tại mctgiangproject1.streamlit.app →](https://mctgiangproject1.streamlit.app)**[![Open in Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://mctgiangproject1.streamlit.app)
 ---
 
 ## Về dự án
