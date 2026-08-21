@@ -1,0 +1,57 @@
+[
+  {
+    "portfolio":"VCB + BID (high correlation)",
+    "n_assets":2,
+    "mvp_return":0.0898039882,
+    "mvp_vol":0.2450755854,
+    "mvp_sharpe":0.1828170198,
+    "ew_return":0.0930472937,
+    "ew_vol":0.2546894423,
+    "ew_sharpe":0.1886505119,
+    "vol_reduction_pct":3.7747371152
+  },
+  {
+    "portfolio":"5 diverse sectors",
+    "n_assets":5,
+    "mvp_return":0.0709971876,
+    "mvp_vol":0.196437186,
+    "mvp_sharpe":0.1323435146,
+    "ew_return":0.1149290045,
+    "ew_vol":0.2145901373,
+    "ew_sharpe":0.3258724067,
+    "vol_reduction_pct":8.4593595482
+  },
+  {
+    "portfolio":"5 banks (same sector)",
+    "n_assets":5,
+    "mvp_return":0.1206219397,
+    "mvp_vol":0.2265236044,
+    "mvp_sharpe":0.3338369082,
+    "ew_return":0.1479913597,
+    "ew_vol":0.2483808271,
+    "ew_sharpe":0.4146510053,
+    "vol_reduction_pct":8.7998832346
+  },
+  {
+    "portfolio":"10 VN30 stocks",
+    "n_assets":10,
+    "mvp_return":0.1038890863,
+    "mvp_vol":0.1866104624,
+    "mvp_sharpe":0.3155722651,
+    "ew_return":0.1514444467,
+    "ew_vol":0.2124836722,
+    "ew_sharpe":0.5009535349,
+    "vol_reduction_pct":12.1765637414
+  },
+  {
+    "portfolio":"29 VN30 (full)",
+    "n_assets":29,
+    "mvp_return":0.0725384906,
+    "mvp_vol":0.1562314899,
+    "mvp_sharpe":0.1762672211,
+    "ew_return":0.1434245165,
+    "ew_vol":0.2107731996,
+    "ew_sharpe":0.4669688398,
+    "vol_reduction_pct":25.8769662641
+  }
+]
