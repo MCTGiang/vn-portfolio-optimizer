@@ -12,12 +12,22 @@ Optimal Portfolio Allocation for VN30: A Minimum Variance Approach Using Modern 
 
 ## Roadmap
 
-| Phase | Timeline | Scope |
-|-------|----------|-------|
-| Project 1 | Apr–Jun 2026 | Minimum Variance Portfolio, SQLite pipeline, Streamlit dashboard |
-| Project 2 | Sep–Nov 2026 | Efficient Frontier, Auto-Rebalancing, NLP Sentiment Analysis |
-| Project 3 | Dec 2026 – Jan 2027 | Ensemble ML, VaR/CVaR Risk Management, Backtesting Engine |
-| Thesis | Feb–May 2027 | Production System |
+This is Phase 1 of a 4-phase incremental research project on quantitative investment for Vietnamese equities. Each phase builds on the previous one, culminating in a production-ready platform for retail investors.
+
+| Phase | Timeline | Status | Focus |
+|-------|----------|--------|-------|
+| ✅ **Project 1** | 2026 Q2 | **Complete** | MPT + MVP dashboard for VN30 — *this repo* |
+| 🚧 **Project 2** | 2026 Q4 | Planning | Efficient Frontier + Auto-Rebalancing + NLP Sentiment |
+| 📅 **Project 3** | 2027 Q1 | Planned | Ensemble ML forecasting (LSTM/XGBoost/RF) + VaR/CVaR + Backtesting |
+| 📅 **Thesis** | 2027 Q1–2027 Q2 | Planned | Production system: microservices, real-time data, trading API integration |
+
+### Project 2 preview (starting September 2026)
+
+Building on the MVP foundation, Project 2 will extend the optimizer to select portfolios across the full Efficient Frontier (multiple risk levels), automate periodic rebalancing with transaction costs, and integrate NLP sentiment analysis from Vietnamese financial news (VnExpress, CafeF) using PhoBERT.
+
+### Long-term vision
+
+The final thesis will deliver an end-to-end investment platform integrating ensemble ML price forecasting, portfolio optimization, and advanced risk management (VaR/CVaR/Stress Testing), deployed as microservices with real-time SSI FastConnect API integration for actual trading execution.
 
 ## Tech Stack
 
