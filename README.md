@@ -1,65 +1,53 @@
 # VN Portfolio Optimizer
 
-Optimal Portfolio Allocation for VN30: A Minimum Variance Approach Using Modern Portfolio Theory
+**English** | [Tiếng Việt](./README.vi.md)
 
-🚀 **[Try it live at mctgiangproject1.streamlit.app →](https://mctgiangproject1.streamlit.app)**
-[![Open in Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://mctgiangproject1.streamlit.app)
+> Portfolio optimizer for Vietnamese VN30 stocks — reduces volatility 8-25% versus equal-weighted baselines
+
+[//]: # (Badges will be added on Day 9 - Testing & CI/CD)
 
 ![Dashboard demo](./docs/images/demo.gif)
 
-
-## Tech Stack
-
-- **Data collection**: vnstock, pandas, SQLite
-- **Optimization**: numpy, scipy.optimize
-- **Visualization**: Streamlit, Plotly
-- **ML (Phase 2+)**: scikit-learn, XGBoost, TensorFlow
-
-## Project Structure
-```
-vn-portfolio-optimizer/
-├── data/
-│   ├── raw/               # Raw OHLCV data from vnstock
-│   └── processed/         # Cleaned data and feature matrices
-├── notebooks/             # EDA and experimentation notebooks
-├── src/                   # Reusable Python modules
-│   ├── data_loader.py     # ETL pipeline, SQLite connection
-│   ├── features.py        # Returns, volatility calculations
-│   ├── portfolio_metrics.py  # Expected return, covariance matrix
-│   └── optimizer.py       # scipy-based portfolio optimizer
-├── app/
-│   └── app.py             # Streamlit dashboard
-├── reports/               # PDF reports and result figures
-├── requirements.txt
-└── README.md
-```
-
-## Getting Started
-
-```bash
-git clone https://github.com/MCTGiang/vn-portfolio-optimizer.git
-cd vn-portfolio-optimizer
-pip install -r requirements.txt
-
-# Fetch stock data (run once to populate local database)
-python src/data_loader.py
-```
-## Live Demo
-
 🚀 **[Try it live at mctgiangproject1.streamlit.app →](https://mctgiangproject1.streamlit.app)**
-[![Open in Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://mctgiangproject1.streamlit.app)
 
-Try these sample portfolios:
-- **Diverse 5 sectors:** VCB, VNM, HPG, FPT, MWG
-- **Bank sector focus:** VCB, BID, CTG, TCB, MBB  
-- **Full VN30 basket:** Select all 29 stocks
+---
 
-Features to explore: interactive optimization, correlation heatmap, Excel/PDF export.
+## Project Motivation: Democratizing Quantitative Finance in Vietnam
 
-## Data Source
+Despite comprising 99% of Vietnam's 13.6 million brokerage accounts (as of May 2026), retail investors are systematically locked out of data-driven investing. Existing quantitative portfolio optimization tools are either restricted by institutional paywalls or lack localized support for Vietnamese market mechanics (VN30 tickers, HOSE calendars, VND pricing).
 
-Stock price data is sourced from the Ho Chi Minh Stock Exchange (HOSE)
-and Hanoi Stock Exchange (HNX) via the `vnstock` library (public data, no credentials required).
+I built this project to bridge that information gap. By providing access to the same risk-adjusted mathematical frameworks (Markowitz, 1952) used by institutional funds, this tool empowers retail investors to move beyond social media speculation and make mathematically sound, data-driven portfolio decisions.
+
+## The Solution
+
+**VN Portfolio Optimizer** is a free, open-source web application that brings institutional-grade quantitative modeling to the Vietnamese equity market. By implementing Markowitz's Modern Portfolio Theory (MPT), the tool allows users to select subsets of the VN30 index and dynamically generates:
+
+- **Optimal asset allocation**: Computes the Minimum Variance Portfolio to minimize mathematical risk.
+- **Benchmark Evaluation**: Backtests the optimized portfolio against a naive, equal-weighted ($1/N$) baseline.
+- **Interactive risk analytics**: Visualizes asset relationships through dynamically generated correlation heatmaps and diversification metrics.
+- **Exportable reports** in Excel (3 sheets) and PDF formats.
+
+### Measurable Impact
+
+The optimization engine was validated across distinct portfolio configurations using five years of historical market data (01/01/2021–20/08/2026).
+
+| Portfolio | Vol Reduction |
+|-----------|---------------|
+| 2 correlated stocks (VCB + BID) | 3.8% |
+| 5 diverse sectors | 8.5% |
+| 10 VN30 stocks | 12.2% |
+| **Full VN30 basket (29 stocks)** | **25.9%** |
+
+Key Finding: The system quantitatively confirms that MPT principles hold strong in the Vietnamese market. **Volatility reduction scales predictably with the number and sectoral diversity of holdings**, proving the mathematical value of the tool for retail investors.
+
+## Key Features
+
+- 📊 **Minimum Variance Portfolio** — Sequential Least Squares Programming (SLSQP) solver with no-short-sell constraints (0 ≤ wᵢ ≤ 1, Σwᵢ = 1)
+- 📈 **Interactive dashboard** — Donut allocation chart, MVP vs Equal Weights comparison, correlation heatmap, and portfolio KPI cards (Return, Volatility, Sharpe Ratio, Active Positions)
+- 🇻🇳 **Vietnamese-first data** — vnstock KBSQuote as primary source, yfinance as automatic fallback for cloud deployment reliability
+- 💾 **Report exports** — Excel with 3 sheets (Allocation / Metrics / Correlation) and PDF with 2-page layout including all charts
+- 🌏 **Bilingual UI** — Vietnamese and English toggle for both interface labels and export outputs
+- ☁️ **Cloud-ready** — Deployed on Streamlit Community Cloud with auto-DB initialization on cold start
 
 ## Architecture
 
@@ -211,6 +199,10 @@ sequenceDiagram
 | 10 VN30 stocks | 10 | 10.39% | 18.66% | 21.25% | 12.2% | 0.316 |
 | **29 VN30 (full)** | **29** | **7.25%** | **15.62%** | **21.08%** | **25.9%** | **0.176** |
 
+**Key finding:** Volatility reduction scales with diversification—from 3.8% for 2 highly-correlated stocks to 25.9% for the full VN30 basket. This empirically validates the theoretical foundation of Modern Portfolio Theory in the Vietnamese market.
+
+> _Note: Sharpe ratios reflect the challenging 2022–2023 VN market conditions (VN-Index drawdown of ~30%). The system's core value lies in demonstrating measurable diversification benefit, not maximizing risk-adjusted returns._
+
 📊 **Reproduce these numbers:** Run [`notebooks/09_final_benchmark_results.ipynb`](./notebooks/09_final_benchmark_results.ipynb) or see [`reports/benchmark_results_20260821.csv`](./reports/benchmark_results_20260821.csv).
 
 ## Screenshots
@@ -225,6 +217,69 @@ sequenceDiagram
     <td align="center"><em>Correlation heatmap for portfolio analysis</em></td>
   </tr>
 </table>
+
+## Tech Stack
+
+**Backend & Analytics**
+- Python 3.10+
+- SciPy (SLSQP optimization)
+- NumPy, Pandas (numerical computation)
+
+**Data**
+- vnstock (Vietnamese market data)
+- yfinance (fallback data source)
+- SQLite (embedded storage)
+
+**Frontend**
+- Streamlit (web framework)
+- Plotly (interactive charts)
+
+**Export**
+- openpyxl (Excel generation)
+- fpdf2 + matplotlib (PDF generation with Vietnamese font support)
+
+**Infrastructure**
+- Streamlit Community Cloud (deployment)
+- GitHub Actions (CI/CD — added in v1.1)
+- pytest (testing framework — added in v1.1)
+## Quick Start
+
+### Option 1: Try the live demo (recommended)
+
+Visit **[mctgiangproject1.streamlit.app](https://mctgiangproject1.streamlit.app)** — no installation required.
+
+### Option 2: Run locally
+
+```bash
+# Clone the repository
+git clone https://github.com/MCTGiang/vn-portfolio-optimizer.git
+cd vn-portfolio-optimizer
+
+# Create virtual environment (recommended)
+python -m venv venv
+source venv/bin/activate  # Linux/Mac
+# venv\Scripts\activate     # Windows
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Run the app
+streamlit run app/app.py
+```
+
+The app will open automatically at `http://localhost:8501`.
+
+### First-run initialization
+
+On first launch, the app auto-downloads OHLCV data for 29 VN30 stocks (2021-present). 
+This takes 3-5 minutes and creates `data/raw/portfolio.db` (~40MB SQLite file).
+
+### Optional: Update to latest market data
+
+```python
+from src.data_loader import update_db
+update_db(start='2021-01-01')  # Fetches new sessions since last update
+```
 
 ## Roadmap
 
@@ -245,6 +300,18 @@ Building on the MVP foundation, Project 2 will extend the optimizer to select po
 
 The final thesis will deliver an end-to-end investment platform integrating ensemble ML price forecasting, portfolio optimization, and advanced risk management (VaR/CVaR/Stress Testing), deployed as microservices with real-time SSI FastConnect API integration for actual trading execution.
 
+## About the Author
+
+**Mai Công Trà Giang** — IT Engineering student at Hanoi University of Science and Technology (HUST), 
+pursuing a dual-degree program with Foreign Trade University (FTU). This project is Phase 1 of a 
+2-year initiative to build production-grade quantitative investment tools for the Vietnamese market.
+
+**Connect:** [GitHub @MCTGiang](https://github.com/MCTGiang) · [LinkedIn](https://linkedin.com/in/mctgiang)
+
+
 ## License
 
-MIT
+MIT License — see [LICENSE](./LICENSE) for details.
+
+Copyright © 2026 Mai Công Trà Giang
+
