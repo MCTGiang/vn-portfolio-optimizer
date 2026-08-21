@@ -248,6 +248,7 @@ sequenceDiagram
 
 Visit **[mctgiangproject1.streamlit.app](https://mctgiangproject1.streamlit.app)** — no installation required.
 
+tree -L 2 -I 'venv|__pycache__|.git|.venv|node_modules' > /tmp/repo_structure.txt
 ### Option 2: Run locally
 
 ```bash
