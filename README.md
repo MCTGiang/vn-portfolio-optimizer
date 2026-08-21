@@ -1,14 +1,11 @@
 # VN Portfolio Optimizer
 
-[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://mctgiangproject1.streamlit.app/)
-
 Optimal Portfolio Allocation for VN30: A Minimum Variance Approach Using Modern Portfolio Theory
 
-## 🚀 Live Demo
+🚀 **[Try it live at mctgiangproject1.streamlit.app →](https://mctgiangproject1.streamlit.app)**
+[![Open in Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://mctgiangproject1.streamlit.app)
 
-👉 **[https://mctgiangproject1.streamlit.app/](https://mctgiangproject1.streamlit.app/)**
-
----
+![Dashboard demo](./docs/images/demo.gif)
 
 ## Roadmap
 
@@ -68,7 +65,6 @@ python src/data_loader.py
 ## Live Demo
 
 🚀 **[Try it live at mctgiangproject1.streamlit.app →](https://mctgiangproject1.streamlit.app)**
-
 [![Open in Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://mctgiangproject1.streamlit.app)
 
 Try these sample portfolios:
@@ -87,13 +83,27 @@ and Hanoi Stock Exchange (HNX) via the `vnstock` library (public data, no creden
 
 | Portfolio | # Assets | MVP Return | MVP Vol | EW Vol | Vol Reduction | Sharpe (MVP) |
 |-----------|----------|------------|---------|--------|---------------|--------------|
-| VCB + BID (high correlation) | 2 | 8.98% | 24.51% | 25.47% | 3.8% | 0.183 |
-| 5 diverse sectors | 5 | 7.10% | 19.64% | 21.46% | 8.5% | 0.132 |
+| VCB + BID (high correlation) | 02 | 8.98% | 24.51% | 25.47% | 3.8% | 0.183 |
+| 5 diverse sectors | 05 | 7.10% | 19.64% | 21.46% | 8.5% | 0.132 |
 | 5 banks (same sector) | 5 | 12.06% | 22.65% | 24.84% | 8.8% | 0.334 |
 | 10 VN30 stocks | 10 | 10.39% | 18.66% | 21.25% | 12.2% | 0.316 |
 | **29 VN30 (full)** | **29** | **7.25%** | **15.62%** | **21.08%** | **25.9%** | **0.176** |
 
 📊 **Reproduce these numbers:** Run [`notebooks/09_final_benchmark_results.ipynb`](./notebooks/09_final_benchmark_results.ipynb) or see [`reports/benchmark_results_20260821.csv`](./reports/benchmark_results_20260821.csv).
+
+## Screenshots
+
+<table>
+  <tr>
+    <td><img src="./docs/images/detail-optimization.png" alt="Optimization panel"/></td>
+    <td><img src="./docs/images/detail-heatmap.png" alt="Correlation heatmap"/></td>
+  </tr>
+  <tr>
+    <td align="center"><em>KPI cards and allocation donut chart</em></td>
+    <td align="center"><em>Correlation heatmap for portfolio analysis</em></td>
+  </tr>
+</table>
+
 ## License
 
 MIT
