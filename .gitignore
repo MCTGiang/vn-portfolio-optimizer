@@ -76,7 +76,14 @@ docs/_build/
 target/
 
 # Jupyter Notebook
-.ipynb_checkpoints
+# Untitled notebooks (should never be committed)
+Untitled*.ipynb
+notebooks/Untitled*.ipynb
+
+# Jupyter checkpoints
+.ipynb_checkpoints/
+**/.ipynb_checkpoints/
+
 
 # IPython
 profile_default/
@@ -219,8 +226,18 @@ data/raw/
 *.pkl
 *.joblib
 
+# Temporary files
+*.tmp
+*.bak
+*.swp
+*~
+
 # OS
 .DS_Store
 Thumbs.db
+
+# IDE
 .vscode/
-Untitled.ipynb
+.idea/
+*.code-workspace
+
