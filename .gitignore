@@ -82,9 +82,10 @@ desktop.ini
 .streamlit/*.log
 
 # ─── Project-specific: Data ────────────────────────────────────────
-# Keep raw data folder structure but ignore actual DB files
+# Ignore all .db files except portfolio.db (needed for CI to run tests with real data)
 data/raw/*.db
 data/raw/*.db-journal
+!data/raw/portfolio.db
 !data/raw/.gitkeep
 
 # Processed data can be regenerated from raw
