@@ -301,6 +301,12 @@ Building on the MVP foundation, Project 2 will extend the optimizer to select po
 
 The final thesis will deliver an end-to-end investment platform integrating ensemble ML price forecasting, portfolio optimization, and advanced risk management (VaR/CVaR/Stress Testing), deployed as microservices with real-time SSI FastConnect API integration for actual trading execution.
 
+## Documentation
+
+- [Architecture Decisions](./docs/architecture.md) — Design rationale for 6 key technical choices (SQLite, SLSQP, Streamlit, and more)
+- [Notebook Guide](./notebooks/README.md) — Reproducible analysis notebooks organized by category
+- [Full Report (Vietnamese)](./reports/) — Complete project report with detailed methodology
+
 ## About the Author
 
 **Mai Công Trà Giang** — IT Engineering student at Hanoi University of Science and Technology (HUST), 
