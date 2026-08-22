@@ -1,0 +1,54 @@
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+# Enable common checks
+select = [
+    "E",    # pycodestyle errors
+    "W",    # pycodestyle warnings
+    "F",    # pyflakes
+    "I",    # isort
+    "B",    # flake8-bugbear
+    "C4",   # flake8-comprehensions
+    "SIM",  # flake8-simplify
+    "RUF",  # ruff-specific rules
+]
+
+# Ignore specific rules with justification
+ignore = [
+    # E501: line too long (handled by black, some URLs/comments are unavoidable)
+    "E501",
+    
+    # E402: module-level imports not at top of file
+    # Justified: conftest.py needs sys.path.insert() before importing from src/
+    "E402",
+    
+    # BLE001: blind except Exception
+    # Justified: data fetching functions catch broad exceptions to prevent
+    # network/API errors from crashing the entire pipeline. Errors are logged
+    # for debugging. Refactoring to specific exception types would be brittle.
+    "BLE001",
+    
+    # DTZ002: datetime.today() without timezone
+    # Justified: this is a personal Vietnamese stock analysis project.
+    # All operations are in local Vietnam time. Adding timezone handling
+    # would add complexity without benefit for this scope.
+    "DTZ002",
+    
+    # RUF001, RUF002, RUF003: ambiguous Unicode characters (×, σ, μ, Σ)
+    # Justified: these are intentional math notation in docstrings/comments
+    # for portfolio theory formulas (variance = wᵀΣw, Sharpe = (Rp - Rf) / σp).
+    # Replacing with ASCII would harm mathematical readability.
+    "RUF001",
+    "RUF002",
+    "RUF003",
+]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+
+[tool.black]
+line-length = 100
+target-version = ["py311"]

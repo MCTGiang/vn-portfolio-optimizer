@@ -9,24 +9,24 @@ Key functions:
     - display_metrics()    : formatted summary table
 """
 
-import numpy as np
-import pandas as pd
 import os
 import sys
 
+import numpy as np
+import pandas as pd
+
 sys.path.insert(0, os.path.dirname(__file__))
-from data_loader import load_from_db, VN30_TICKERS
-from features import build_returns_matrix, calc_returns
+from data_loader import VN30_TICKERS
+from features import build_returns_matrix
 
 TRADING_DAYS = 252
-RISK_FREE_RATE = 0.045   # SBV reference rate ~4.5% Vietnam
+RISK_FREE_RATE = 0.045  # SBV reference rate ~4.5% Vietnam
 
 
 # ── Core metrics ───────────────────────────────────────────────────────────────
 
-def expected_returns(tickers: list,
-                     start: str,
-                     end: str) -> pd.Series:
+
+def expected_returns(tickers: list, start: str, end: str) -> pd.Series:
     """
     Compute annualized expected return for each ticker.
 
@@ -44,9 +44,7 @@ def expected_returns(tickers: list,
     return matrix.mean() * TRADING_DAYS
 
 
-def covariance_matrix(tickers: list,
-                      start: str,
-                      end: str) -> pd.DataFrame:
+def covariance_matrix(tickers: list, start: str, end: str) -> pd.DataFrame:
     """
     Compute annualized covariance matrix from daily returns.
 
@@ -67,9 +65,7 @@ def covariance_matrix(tickers: list,
     return matrix.cov() * TRADING_DAYS
 
 
-def correlation_matrix(tickers: list,
-                       start: str,
-                       end: str) -> pd.DataFrame:
+def correlation_matrix(tickers: list, start: str, end: str) -> pd.DataFrame:
     """
     Compute correlation matrix from daily returns.
 
@@ -90,10 +86,13 @@ def correlation_matrix(tickers: list,
 
 # ── Portfolio statistics ───────────────────────────────────────────────────────
 
-def portfolio_stats(weights: np.ndarray,
-                    exp_returns: pd.Series,
-                    cov_mat: pd.DataFrame,
-                    risk_free: float = RISK_FREE_RATE) -> dict:
+
+def portfolio_stats(
+    weights: np.ndarray,
+    exp_returns: pd.Series,
+    cov_mat: pd.DataFrame,
+    risk_free: float = RISK_FREE_RATE,
+) -> dict:
     """
     Compute portfolio return, volatility, and Sharpe Ratio.
 
@@ -127,20 +126,23 @@ def portfolio_stats(weights: np.ndarray,
     sharpe = (port_return - risk_free) / port_volatility
 
     return {
-        'port_return'    : port_return,
-        'port_volatility': port_volatility,
-        'sharpe_ratio'   : sharpe,
-        'port_variance'  : port_variance,
+        "port_return": port_return,
+        "port_volatility": port_volatility,
+        "sharpe_ratio": sharpe,
+        "port_variance": port_variance,
     }
 
 
 # ── Display helper ─────────────────────────────────────────────────────────────
 
-def display_metrics(tickers: list,
-                    weights: np.ndarray,
-                    exp_returns: pd.Series,
-                    cov_mat: pd.DataFrame,
-                    label: str = 'Portfolio') -> pd.DataFrame:
+
+def display_metrics(
+    tickers: list,
+    weights: np.ndarray,
+    exp_returns: pd.Series,
+    cov_mat: pd.DataFrame,
+    label: str = "Portfolio",
+) -> pd.DataFrame:
     """
     Print formatted portfolio summary with allocation table.
 
@@ -164,27 +166,30 @@ def display_metrics(tickers: list,
     print(f"  Sharpe Ratio       : {stats['sharpe_ratio']:>8.3f}")
     print(f"{'='*45}")
 
-    alloc = pd.DataFrame({
-        'Ticker'    : tickers,
-        'Weight'    : [f"{w:.1%}" for w in weights],
-        'Exp Return': [f"{r:.1%}" for r in exp_returns.values],
-    })
+    alloc = pd.DataFrame(
+        {
+            "Ticker": tickers,
+            "Weight": [f"{w:.1%}" for w in weights],
+            "Exp Return": [f"{r:.1%}" for r in exp_returns.values],
+        }
+    )
     print(alloc.to_string(index=False))
     return alloc
 
 
 # ── Entry point ────────────────────────────────────────────────────────────────
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     from data_loader import get_db_summary
-    START = '2021-01-01'
-    END   = get_db_summary()['end_date'].max()
-    N     = len(VN30_TICKERS)
+
+    START = "2021-01-01"
+    END = get_db_summary()["end_date"].max()
+    N = len(VN30_TICKERS)
 
     print("Computing expected returns and covariance matrix...")
-    mu  = expected_returns(VN30_TICKERS, START, END)
+    mu = expected_returns(VN30_TICKERS, START, END)
     cov = covariance_matrix(VN30_TICKERS, START, END)
 
     # Test with equal weights
-    w_equal = np.array([1/N] * N)
-    display_metrics(VN30_TICKERS, w_equal, mu, cov, label='Equal Weights (1/30 each)')
+    w_equal = np.array([1 / N] * N)
+    display_metrics(VN30_TICKERS, w_equal, mu, cov, label="Equal Weights (1/30 each)")
