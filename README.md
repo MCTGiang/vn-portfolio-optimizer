@@ -203,7 +203,7 @@ sequenceDiagram
 
 > _Note: Sharpe ratios reflect the challenging 2022–2023 VN market conditions (VN-Index drawdown of ~30%). The system's core value lies in demonstrating measurable diversification benefit, not maximizing risk-adjusted returns._
 
-📊 **Reproduce these numbers:** Run [`notebooks/09_final_benchmark_results.ipynb`](./notebooks/09_final_benchmark_results.ipynb) or see [`reports/benchmark_results_20260821.csv`](./reports/benchmark_results_20260821.csv).
+📊 **Reproduce these numbers:** Run [`notebooks/90_final_benchmark_results.ipynb`](./notebooks/90_final_benchmark_results.ipynb) or see [`reports/benchmark_results_20260821.csv`](./reports/benchmark_results_20260821.csv).
 
 ## Screenshots
 
