@@ -1,5 +1,9 @@
 # VN Portfolio Optimizer
 
+[![Tests](https://github.com/MCTGiang/vn-portfolio-optimizer/actions/workflows/tests.yml/badge.svg)](https://github.com/MCTGiang/vn-portfolio-optimizer/actions/workflows/tests.yml)
+[![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 **English** | [Tiếng Việt](./README.vi.md)
 
 > Portfolio optimizer for Vietnamese VN30 stocks — reduces volatility 8-25% versus equal-weighted baselines
