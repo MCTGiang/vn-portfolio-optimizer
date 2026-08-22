@@ -243,3 +243,47 @@ def cov_matrix_29_full(vn30_tickers_full, date_range_full):
         date_range_full["start"],
         date_range_full["end"],
     )
+
+
+
+# ═══════════════════════════════════════════════════════════════════
+# Optimizer fixtures - MVP results pre-computed
+# ═══════════════════════════════════════════════════════════════════
+#
+# API verified: min_variance_portfolio(tickers, start, end) -> dict
+# Returns dict with 11 keys:
+#   tickers, weights, port_return, port_volatility, sharpe_ratio,
+#   success, message, equal_weights_vol, improvement_pct, mu, cov
+
+
+@pytest.fixture(scope="session")
+def mvp_result_5_diverse(sample_tickers_diverse, date_range_full):
+    """MVP optimization result for 5 diverse stocks."""
+    from src.optimizer import min_variance_portfolio
+    return min_variance_portfolio(
+        sample_tickers_diverse,
+        date_range_full["start"],
+        date_range_full["end"],
+    )
+
+
+@pytest.fixture(scope="session")
+def mvp_result_29_full(vn30_tickers_full, date_range_full):
+    """MVP optimization result for full VN30 (largest portfolio)."""
+    from src.optimizer import min_variance_portfolio
+    return min_variance_portfolio(
+        vn30_tickers_full,
+        date_range_full["start"],
+        date_range_full["end"],
+    )
+
+
+@pytest.fixture(scope="session")
+def mvp_result_pair(sample_tickers_pair_correlated, date_range_full):
+    """MVP result for 2 highly correlated stocks (VCB + BID)."""
+    from src.optimizer import min_variance_portfolio
+    return min_variance_portfolio(
+        sample_tickers_pair_correlated,
+        date_range_full["start"],
+        date_range_full["end"],
+    )
