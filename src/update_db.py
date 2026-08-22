@@ -8,29 +8,31 @@ Usage:
   python src/update_db.py --replace              # clear and re-fetch all data
 """
 
-import sys
-import os
 import argparse
+import os
+import sys
 
 sys.path.insert(0, os.path.dirname(__file__))
-from data_loader import update_db, get_db_summary, VN30_TICKERS
+from data_loader import VN30_TICKERS, get_db_summary, update_db
 
 
 def main():
     parser = argparse.ArgumentParser(
-        description='Update VN Portfolio Optimizer stock price database'
+        description="Update VN Portfolio Optimizer stock price database"
     )
     parser.add_argument(
-        '--tickers', nargs='+', default=None,
-        help='Specific tickers to update (default: all 30 VN30 tickers)'
+        "--tickers",
+        nargs="+",
+        default=None,
+        help="Specific tickers to update (default: all 30 VN30 tickers)",
     )
     parser.add_argument(
-        '--start', default='2021-01-01',
-        help='Start date YYYY-MM-DD (default: 2021-01-01)'
+        "--start",
+        default="2021-01-01",
+        help="Start date YYYY-MM-DD (default: 2021-01-01)",
     )
     parser.add_argument(
-        '--replace', action='store_true',
-        help='Delete existing data before inserting'
+        "--replace", action="store_true", help="Delete existing data before inserting"
     )
     args = parser.parse_args()
 
@@ -52,5 +54,5 @@ def main():
     print(get_db_summary().to_string(index=False))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

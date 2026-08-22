@@ -6,8 +6,9 @@ in the tests/ directory without explicit import.
 """
 
 import sys
-import pytest
 from pathlib import Path
+
+import pytest
 
 # Add project root to Python path so we can import src.* modules
 project_root = Path(__file__).resolve().parent.parent
@@ -15,12 +16,11 @@ sys.path.insert(0, str(project_root))
 
 from src.data_loader import (
     create_table,
-    get_connection,
     get_all_tickers,
+    get_connection,
     get_db_summary,
     load_from_db,
 )
-
 
 # ═══════════════════════════════════════════════════════════════════
 # Database fixtures
@@ -31,7 +31,7 @@ from src.data_loader import (
 def db_initialized():
     """
     Ensure database is initialized before running tests.
-    
+
     Session scope: runs once per test session (not per test).
     """
     create_table()
@@ -42,7 +42,7 @@ def db_initialized():
 def db_connection(db_initialized):
     """
     Provide a database connection for tests that need direct DB access.
-    
+
     Session scope: shared connection across all tests.
     Automatically closed after all tests complete.
     """
@@ -77,6 +77,7 @@ def sample_tickers_diverse():
     """5 diverse VN30 stocks across different sectors."""
     return ["VCB", "VNM", "HPG", "FPT", "MWG"]
 
+
 @pytest.fixture(scope="session")
 def sample_tickers_banks():
     """5 banks - same sector, high correlation."""
@@ -93,10 +94,35 @@ def sample_tickers_pair_correlated():
 def vn30_tickers_full():
     """Full 29 VN30 tickers (excluding VPL which was listed in 05/2025)."""
     return [
-        "ACB", "BID", "CTG", "DGC", "FPT", "GAS", "GVR", "HDB", "HPG",
-        "LPB", "MBB", "MSN", "MWG", "PLX", "SAB", "SHB", "SSB", "SSI",
-        "STB", "TCB", "TPB", "VCB", "VHM", "VIB", "VIC", "VJC", "VNM",
-        "VPB", "VRE",
+        "ACB",
+        "BID",
+        "CTG",
+        "DGC",
+        "FPT",
+        "GAS",
+        "GVR",
+        "HDB",
+        "HPG",
+        "LPB",
+        "MBB",
+        "MSN",
+        "MWG",
+        "PLX",
+        "SAB",
+        "SHB",
+        "SSB",
+        "SSI",
+        "STB",
+        "TCB",
+        "TPB",
+        "VCB",
+        "VHM",
+        "VIB",
+        "VIC",
+        "VJC",
+        "VNM",
+        "VPB",
+        "VRE",
     ]
 
 
@@ -141,6 +167,7 @@ def vcb_price_data(date_range_full):
     """
     return load_from_db("VCB", date_range_full["start"], date_range_full["end"])
 
+
 # ═══════════════════════════════════════════════════════════════════
 # Features fixtures - returns matrix and computed statistics
 # ═══════════════════════════════════════════════════════════════════
@@ -150,10 +177,11 @@ def vcb_price_data(date_range_full):
 def returns_matrix_5_diverse(sample_tickers_diverse, date_range_full):
     """
     Returns matrix for 5 diverse VN30 stocks.
-    
+
     Session scope: computed once, reused across multiple tests.
     """
     from src.features import build_returns_matrix
+
     return build_returns_matrix(
         sample_tickers_diverse,
         date_range_full["start"],
@@ -165,11 +193,12 @@ def returns_matrix_5_diverse(sample_tickers_diverse, date_range_full):
 def returns_matrix_29_full(vn30_tickers_full, date_range_full):
     """
     Returns matrix for full VN30 (29 stocks).
-    
+
     Session scope: this is the largest and most expensive matrix,
     so we compute once and reuse across many tests.
     """
     from src.features import build_returns_matrix
+
     return build_returns_matrix(
         vn30_tickers_full,
         date_range_full["start"],
@@ -181,6 +210,7 @@ def returns_matrix_29_full(vn30_tickers_full, date_range_full):
 def returns_matrix_pair(sample_tickers_pair_correlated, date_range_full):
     """Returns matrix for 2 correlated stocks (VCB + BID)."""
     from src.features import build_returns_matrix
+
     return build_returns_matrix(
         sample_tickers_pair_correlated,
         date_range_full["start"],
@@ -193,7 +223,7 @@ def returns_matrix_pair(sample_tickers_pair_correlated, date_range_full):
 # ═══════════════════════════════════════════════════════════════════
 #
 # Note: Functions in src/portfolio_metrics.py take (tickers, start, end)
-# and load data internally. They do NOT accept a pre-computed returns 
+# and load data internally. They do NOT accept a pre-computed returns
 # matrix as input.
 #
 # Signatures verified:
@@ -205,6 +235,7 @@ def returns_matrix_pair(sample_tickers_pair_correlated, date_range_full):
 def expected_returns_5_diverse(sample_tickers_diverse, date_range_full):
     """Expected returns (μ) for 5 diverse stocks, annualized."""
     from src.portfolio_metrics import expected_returns
+
     return expected_returns(
         sample_tickers_diverse,
         date_range_full["start"],
@@ -216,6 +247,7 @@ def expected_returns_5_diverse(sample_tickers_diverse, date_range_full):
 def cov_matrix_5_diverse(sample_tickers_diverse, date_range_full):
     """Covariance matrix (Σ) for 5 diverse stocks, annualized."""
     from src.portfolio_metrics import covariance_matrix
+
     return covariance_matrix(
         sample_tickers_diverse,
         date_range_full["start"],
@@ -227,6 +259,7 @@ def cov_matrix_5_diverse(sample_tickers_diverse, date_range_full):
 def expected_returns_29_full(vn30_tickers_full, date_range_full):
     """Expected returns for full VN30, annualized."""
     from src.portfolio_metrics import expected_returns
+
     return expected_returns(
         vn30_tickers_full,
         date_range_full["start"],
@@ -238,12 +271,12 @@ def expected_returns_29_full(vn30_tickers_full, date_range_full):
 def cov_matrix_29_full(vn30_tickers_full, date_range_full):
     """Covariance matrix for full VN30, annualized."""
     from src.portfolio_metrics import covariance_matrix
+
     return covariance_matrix(
         vn30_tickers_full,
         date_range_full["start"],
         date_range_full["end"],
     )
-
 
 
 # ═══════════════════════════════════════════════════════════════════
@@ -260,6 +293,7 @@ def cov_matrix_29_full(vn30_tickers_full, date_range_full):
 def mvp_result_5_diverse(sample_tickers_diverse, date_range_full):
     """MVP optimization result for 5 diverse stocks."""
     from src.optimizer import min_variance_portfolio
+
     return min_variance_portfolio(
         sample_tickers_diverse,
         date_range_full["start"],
@@ -271,6 +305,7 @@ def mvp_result_5_diverse(sample_tickers_diverse, date_range_full):
 def mvp_result_29_full(vn30_tickers_full, date_range_full):
     """MVP optimization result for full VN30 (largest portfolio)."""
     from src.optimizer import min_variance_portfolio
+
     return min_variance_portfolio(
         vn30_tickers_full,
         date_range_full["start"],
@@ -282,6 +317,7 @@ def mvp_result_29_full(vn30_tickers_full, date_range_full):
 def mvp_result_pair(sample_tickers_pair_correlated, date_range_full):
     """MVP result for 2 highly correlated stocks (VCB + BID)."""
     from src.optimizer import min_variance_portfolio
+
     return min_variance_portfolio(
         sample_tickers_pair_correlated,
         date_range_full["start"],

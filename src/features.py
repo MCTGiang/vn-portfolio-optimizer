@@ -10,23 +10,24 @@ Key outputs:
     - Returns matrix for all tickers (N days x M tickers)
 """
 
-import numpy as np
-import pandas as pd
 import os
 import sys
 
+import numpy as np
+import pandas as pd
+
 sys.path.insert(0, os.path.dirname(__file__))
-from data_loader import load_from_db, VN30_TICKERS, get_db_summary
+from data_loader import VN30_TICKERS, get_db_summary, load_from_db
 
 # ── Constants ──────────────────────────────────────────────────────────────────
 
-TRADING_DAYS = 252    # approximate VN market trading days per year
+TRADING_DAYS = 252  # approximate VN market trading days per year
 
 
 # ── Single ticker functions ────────────────────────────────────────────────────
 
-def calc_returns(df: pd.DataFrame,
-                 price_col: str = 'Close') -> pd.Series:
+
+def calc_returns(df: pd.DataFrame, price_col: str = "Close") -> pd.Series:
     """
     Calculate daily simple returns from price series.
 
@@ -45,8 +46,7 @@ def calc_returns(df: pd.DataFrame,
     return df[price_col].pct_change()
 
 
-def calc_log_returns(df: pd.DataFrame,
-                     price_col: str = 'Close') -> pd.Series:
+def calc_log_returns(df: pd.DataFrame, price_col: str = "Close") -> pd.Series:
     """
     Calculate daily log returns from price series.
 
@@ -98,9 +98,7 @@ def annualized_volatility(returns: pd.Series) -> float:
     return returns.dropna().std() * np.sqrt(TRADING_DAYS)
 
 
-def ticker_stats(ticker: str,
-                 start: str,
-                 end: str) -> dict:
+def ticker_stats(ticker: str, start: str, end: str) -> dict:
     """
     Compute annualized return and volatility for one ticker.
 
@@ -115,19 +113,19 @@ def ticker_stats(ticker: str,
     df = load_from_db(ticker, start, end)
     ret = calc_returns(df).dropna()
     return {
-        'ticker'        : ticker,
-        'ann_return'    : annualized_return(ret),
-        'ann_volatility': annualized_volatility(ret),
-        'n_days'        : len(ret),
+        "ticker": ticker,
+        "ann_return": annualized_return(ret),
+        "ann_volatility": annualized_volatility(ret),
+        "n_days": len(ret),
     }
 
 
 # ── Multi-ticker matrix ────────────────────────────────────────────────────────
 
-def build_returns_matrix(tickers: list,
-                         start: str,
-                         end: str,
-                         method: str = 'simple') -> pd.DataFrame:
+
+def build_returns_matrix(
+    tickers: list, start: str, end: str, method: str = "simple"
+) -> pd.DataFrame:
     """
     Build a returns matrix for multiple tickers.
 
@@ -147,19 +145,17 @@ def build_returns_matrix(tickers: list,
     frames = {}
     for ticker in tickers:
         df = load_from_db(ticker, start, end)
-        if method == 'log':
+        if method == "log":
             frames[ticker] = calc_log_returns(df)
         else:
             frames[ticker] = calc_returns(df)
 
     matrix = pd.DataFrame(frames)
-    matrix.dropna(inplace=True)   # drop first row (NaN) + any misaligned dates
+    matrix.dropna(inplace=True)  # drop first row (NaN) + any misaligned dates
     return matrix
 
 
-def all_ticker_stats(tickers: list,
-                     start: str,
-                     end: str) -> pd.DataFrame:
+def all_ticker_stats(tickers: list, start: str, end: str) -> pd.DataFrame:
     """
     Compute annualized return and volatility for all tickers.
 
@@ -173,17 +169,18 @@ def all_ticker_stats(tickers: list,
     """
     rows = [ticker_stats(t, start, end) for t in tickers]
     df = pd.DataFrame(rows)
-    df['ann_return_pct']    = (df['ann_return']     * 100).round(2)
-    df['ann_volatility_pct'] = (df['ann_volatility'] * 100).round(2)
-    return df.sort_values('ann_return', ascending=False).reset_index(drop=True)
+    df["ann_return_pct"] = (df["ann_return"] * 100).round(2)
+    df["ann_volatility_pct"] = (df["ann_volatility"] * 100).round(2)
+    return df.sort_values("ann_return", ascending=False).reset_index(drop=True)
 
 
 # ── Entry point ────────────────────────────────────────────────────────────────
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     from data_loader import get_db_summary
-    START = '2021-01-01'
-    END   = get_db_summary()['end_date'].max()
+
+    START = "2021-01-01"
+    END = get_db_summary()["end_date"].max()
 
     print("Building returns matrix for VN30 tickers...")
     matrix = build_returns_matrix(VN30_TICKERS, START, END)
@@ -193,5 +190,8 @@ if __name__ == '__main__':
 
     print("\nComputing annualized stats...")
     stats = all_ticker_stats(VN30_TICKERS, START, END)
-    print(stats[['ticker', 'ann_return_pct',
-                 'ann_volatility_pct', 'n_days']].to_string(index=False))
+    print(
+        stats[["ticker", "ann_return_pct", "ann_volatility_pct", "n_days"]].to_string(
+            index=False
+        )
+    )
