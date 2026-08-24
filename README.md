@@ -12,7 +12,7 @@
 
 ![Dashboard demo](./docs/images/demo.gif)
 
-🚀 **[Try it live at mctgiangproject1.streamlit.app →](https://mctgiangproject1.streamlit.app)**[![Open in Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://mctgiangproject1.streamlit.app)
+🚀 **Try it live at mctgiangproject1.streamlit.app → ** [![Open in Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://mctgiangproject1.streamlit.app)
 
 ---
 
@@ -224,92 +224,43 @@ sequenceDiagram
 
 ## Tech Stack
 
-**Backend & Analytics**
-- Python 3.10+
-- SciPy (SLSQP optimization)
-- NumPy, Pandas (numerical computation)
+**Core:** Python 3.11+ • SciPy (SLSQP) • Pandas • NumPy • Streamlit • Plotly
 
-**Data**
-- vnstock (Vietnamese market data)
-- yfinance (fallback data source)
-- SQLite (embedded storage)
+**Data:** vnstock (primary) • yfinance (fallback) • SQLite
 
-**Frontend**
-- Streamlit (web framework)
-- Plotly (interactive charts)
+**Testing & CI:** pytest • pytest-cov • GitHub Actions
 
-**Export**
-- openpyxl (Excel generation)
-- fpdf2 + matplotlib (PDF generation with Vietnamese font support)
+**Code Quality:** black • ruff
 
-**Infrastructure**
-- Streamlit Community Cloud (deployment)
-- GitHub Actions (CI/CD — added in v1.1)
-- pytest (testing framework — added in v1.1)
+**Export:** openpyxl (Excel) • fpdf2 + matplotlib (PDF with Vietnamese support)
+
 ## Quick Start
 
-### Option 1: Try the live demo (recommended)
+### Try the live demo (recommended)
 
 Visit **[mctgiangproject1.streamlit.app](https://mctgiangproject1.streamlit.app)** — no installation required.
 
-tree -L 2 -I 'venv|__pycache__|.git|.venv|node_modules' > /tmp/repo_structure.txt
-### Option 2: Run locally
+### Run locally
 
 ```bash
-# Clone the repository
 git clone https://github.com/MCTGiang/vn-portfolio-optimizer.git
 cd vn-portfolio-optimizer
-
-# Create virtual environment (recommended)
-python -m venv venv
-source venv/bin/activate  # Linux/Mac
-# venv\Scripts\activate     # Windows
-
-# Install dependencies
 pip install -r requirements.txt
-
-# Run the app
 streamlit run app/app.py
 ```
 
-The app will open automatically at `http://localhost:8501`.
+For detailed setup instructions, troubleshooting, and dev environment configuration, see **[Setup Guide](./docs/setup.md)**.
 
-### First-run initialization
-
-On first launch, the app auto-downloads OHLCV data for 29 VN30 stocks (2021-present). 
-This takes 3-5 minutes and creates `data/raw/portfolio.db` (~40MB SQLite file).
-
-### Optional: Update to latest market data
-
-```python
-from src.data_loader import update_db
-update_db(start='2021-01-01')  # Fetches new sessions since last update
-```
-
-## Roadmap
-
-This is Phase 1 of a 4-phase incremental research project on quantitative investment for Vietnamese equities. Each phase builds on the previous one, culminating in a production-ready platform for retail investors.
-
-| Phase | Timeline | Status | Focus |
-|-------|----------|--------|-------|
-| ✅ **Project 1** | 2026 Q2 | **Complete** | MPT + MVP dashboard for VN30 — *this repo* |
-| 🚧 **Project 2** | 2026 Q4 | Planning | Efficient Frontier + Auto-Rebalancing + NLP Sentiment |
-| 📅 **Project 3** | 2027 Q1 | Planned | Ensemble ML forecasting (LSTM/XGBoost/RF) + VaR/CVaR + Backtesting |
-| 📅 **Thesis** | 2027 Q1–2027 Q2 | Planned | Production system: microservices, real-time data, trading API integration |
-
-### Project 2 preview (starting September 2026)
-
-Building on the MVP foundation, Project 2 will extend the optimizer to select portfolios across the full Efficient Frontier (multiple risk levels), automate periodic rebalancing with transaction costs, and integrate NLP sentiment analysis from Vietnamese financial news (VnExpress, CafeF) using PhoBERT.
-
-### Long-term vision
-
-The final thesis will deliver an end-to-end investment platform integrating ensemble ML price forecasting, portfolio optimization, and advanced risk management (VaR/CVaR/Stress Testing), deployed as microservices with real-time SSI FastConnect API integration for actual trading execution.
 
 ## Documentation
 
-- [Architecture Decisions](./docs/architecture.md) — Design rationale for 6 key technical choices (SQLite, SLSQP, Streamlit, and more)
-- [Notebook Guide](./notebooks/README.md) — Reproducible analysis notebooks organized by category
-- [Full Report (Vietnamese)](./reports/) — Complete project report with detailed methodology
+- **[Setup Guide](./docs/setup.md)** — Detailed installation, troubleshooting, dev setup
+- **[Architecture Decisions](./docs/architecture.md)** — 6 ADRs documenting design rationale
+- **[Roadmap](./docs/roadmap.md)** — 4-phase research project overview
+- **[Development Log](./docs/development-log.md)** — Sprint retrospective and learnings
+- **[Changelog](./CHANGELOG.md)** — Version history following Keep a Changelog format
+- **[Notebook Guide](./notebooks/README.md)** — Reproducible analysis notebooks organized by category
+- **[Full Report (Vietnamese)](./reports/)** — Complete project report with detailed methodology
 
 ## About the Author
 

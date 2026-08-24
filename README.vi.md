@@ -6,7 +6,7 @@
 
 ![Demo dashboard](./docs/images/demo.gif)
 
-🚀 **[Dùng thử tại mctgiangproject1.streamlit.app →](https://mctgiangproject1.streamlit.app)**[![Open in Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://mctgiangproject1.streamlit.app)
+🚀 **Dùng thử tại mctgiangproject1.streamlit.app →**[![Open in Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://mctgiangproject1.streamlit.app)
 ---
 
 ## Về dự án
@@ -51,12 +51,17 @@ App sẽ tự động mở tại `http://localhost:8501`.
 
 ## Lộ trình phát triển
 
-Dự án được thiết kế thành 04 giai đoạn:
+Dự án là Giai đoạn 1 của kế hoạch nghiên cứu 4 giai đoạn về đầu tư định lượng cho thị trường chứng khoán Việt Nam. Xem chi tiết trong **[Roadmap](./docs/roadmap.md)**.
 
-- ✅ **Project 1** (Q2/2026): MPT + Dashboard MVP — *repo hiện tại*
-- 🚧 **Project 2** (Q4/2026): Đường biên hiệu quả + Tái cân bằng tự động + NLP Sentiment
-- 📅 **Project 3** (Q2/2027): Học máy Ensemble + VaR/CVaR + Backtesting
-- 📅 **Đồ án tốt nghiệp** (2027-2028): Hệ thống production với real-time trading
+## Tài liệu
+
+- **[Hướng dẫn cài đặt (Setup Guide)](./docs/setup.md)** — Cài đặt chi tiết, khắc phục sự cố
+- **[Quyết định kiến trúc (Architecture)](./docs/architecture.md)** — 6 ADRs
+- **[Lộ trình chi tiết (Roadmap)](./docs/roadmap.md)** — Kế hoạch 4 giai đoạn
+- **[Nhật ký phát triển (Dev Log)](./docs/development-log.md)** — Sprint retrospective
+- **[Changelog](./CHANGELOG.md)** — Lịch sử phiên bản
+
+📝 Xem [English README](./README.md) để có đầy đủ Architecture diagrams và Tech Stack breakdown.
 
 ## Tác giả
 
@@ -69,5 +74,3 @@ Dự án được thiết kế thành 04 giai đoạn:
 MIT License — xem [LICENSE](./LICENSE).
 
 ---
-
-📝 **Tài liệu chi tiết:** Tham khảo [English README](./README.md) để có đầy đủ Architecture diagrams, Tech Stack breakdown và Full documentation.
