@@ -12,7 +12,7 @@
 
 ![Dashboard demo](./docs/images/demo.gif)
 
-🚀 **Try it live at mctgiangproject1.streamlit.app → ** [![Open in Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://mctgiangproject1.streamlit.app)
+🚀 **Try it live at mctgiangproject1.streamlit.app →** [![Open in Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://mctgiangproject1.streamlit.app)
 
 ---
 
