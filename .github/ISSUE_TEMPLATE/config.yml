@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 💬 Questions & Discussion
+    url: https://github.com/MCTGiang/vn-portfolio-optimizer/discussions
+    about: For general questions, ideas, or discussions - please use GitHub Discussions
+  - name: 📖 Documentation
+    url: https://github.com/MCTGiang/vn-portfolio-optimizer/tree/main/docs
+    about: Check the docs first - Setup Guide, Architecture, Roadmap, Development Log
+  - name: 🚀 Live Demo
+    url: https://mctgiangproject1.streamlit.app
+    about: Try the app before reporting a bug - the issue might be resolved
