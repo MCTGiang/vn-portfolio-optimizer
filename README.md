@@ -3,6 +3,7 @@
 [![Tests](https://github.com/MCTGiang/vn-portfolio-optimizer/actions/workflows/tests.yml/badge.svg)](https://github.com/MCTGiang/vn-portfolio-optimizer/actions/workflows/tests.yml)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Status](https://img.shields.io/badge/status-operational-brightgreen)](https://stats.uptimerobot.com/spxJeakm9r)
 
 **English** | [Tiếng Việt](./README.vi.md)
 
@@ -259,6 +260,7 @@ For detailed setup instructions, troubleshooting, and dev environment configurat
 - **[Roadmap](./docs/roadmap.md)** — 4-phase research project overview
 - **[Development Log](./docs/development-log.md)** — Sprint retrospective and learnings
 - **[Changelog](./CHANGELOG.md)** — Version history following Keep a Changelog format
+- **[System Status](https://stats.uptimerobot.com/spxJeakm9r)** — Live monitoring of Streamlit deployment
 - **[Notebook Guide](./notebooks/README.md)** — Reproducible analysis notebooks organized by category
 - **[Full Report (Vietnamese)](./reports/)** — Complete project report with detailed methodology
 
