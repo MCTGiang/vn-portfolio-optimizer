@@ -261,6 +261,7 @@ For detailed setup instructions, troubleshooting, and dev environment configurat
 - **[Development Log](./docs/development-log.md)** — Sprint retrospective and learnings
 - **[Changelog](./CHANGELOG.md)** — Version history following Keep a Changelog format
 - **[System Status](https://stats.uptimerobot.com/spxJeakm9r)** — Live monitoring of Streamlit deployment
+- **[Deployment Testing Report](./docs/deployment-testing.md)** — Browser compatibility, mobile responsiveness, network resilience
 - **[Notebook Guide](./notebooks/README.md)** — Reproducible analysis notebooks organized by category
 - **[Full Report (Vietnamese)](./reports/)** — Complete project report with detailed methodology
 
