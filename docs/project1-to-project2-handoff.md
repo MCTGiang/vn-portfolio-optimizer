@@ -15,15 +15,12 @@ across chat sessions.
 **Identity:**
 - Name: Mai Công Trà Giang (Ginny)
 - Location: Vietnam
-- Language mixing: Vietnamese + English (comfortable with either, prefers 
-  Vietnamese for casual, English for technical)
 
 **Background — Career Changer:**
 - 16 years in Vietnamese securities industry (2010-present)
 - International Business degree @ Foreign Trade University (FTU, 2005-2010)
 - Currently pursuing IT Engineering @ Hanoi University of Science and 
   Technology (HUST, 2025-2027) as second bachelor's degree
-- Student ID: 202490043
 - Goal: "Data Leader positioning by mid-2027"
 
 **Why career change:**
@@ -34,14 +31,11 @@ across chat sessions.
 
 **Certifications:**
 - IBM Data Engineering Professional Certificate (Coursera, Oct 2024) — 
-  16-course specialization. Used as foundational reference, not current 
-  active proficiency. Positioned on CV under Education, NOT Certifications.
+  16-course specialization.
 
 **Hardware:**
 - Current: HP Envy 13, 8GB RAM (constraint for Project 2)
 - Upgrade decision deferred to Project 3 boundary (Dec 2026)
-- Target upgrade (if triggered): Lenovo Legion Slim 5 (32GB, RTX 4060, ~$1,400)
-
 ---
 
 ## Project 1 Summary
@@ -335,30 +329,3 @@ content after markdown edits.
 implementation (~2-3 hrs/week study)
 
 ---
-
-## Context Snapshot for Quick Reference
-
-**Just tell Claude:** "Continue Project 2 work" and reference this handoff.
-
-**Ginny's current state (as of 2026-08-26):**
-- Project 1 v1.0.0 complete and stable
-- ~10-11 hrs/week available for portfolio work
-- Comfortable with pytest, CI/CD, git workflow
-- Learning: Docker (via Bret Fisher course), PostgreSQL, Prefect, PhoBERT
-- Not yet learned: dbt (Week 5-6), NLP fine-tuning (Week 10-12)
-
-**Immediate next actions for Project 2:**
-1. Register Bret Fisher's Docker Mastery course
-2. Register Neon Cloud account (region: Singapore)
-3. Create `vn-portfolio-frontier` repository
-4. Initial commit with README + structure
-5. Setup DBeaver GUI + psycopg2-binary
-6. Begin PostgreSQL schema design
-
----
-
-*This handoff document ensures Project 2 continues seamlessly with full 
-context from Project 1. Upload to Project HUST Knowledge in Claude for 
-persistent context across chat sessions.*
-
-*"Show what you can defend." — Sprint principle carried forward.*
