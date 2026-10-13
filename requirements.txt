@@ -3,7 +3,7 @@ plotly>=6.6.0
 pandas>=3.0.2
 numpy>=2.4.4
 scipy>=1.17.1
-vnstock>=3.2.1
+vnstock @ git+https://github.com/thinh-vu/vnstock.git@main
 yfinance>=1.2.0
 openpyxl>=3.1.5
 ipython>=8.18.0
