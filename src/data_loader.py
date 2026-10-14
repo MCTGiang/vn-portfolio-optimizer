@@ -81,13 +81,24 @@ def create_table() -> None:
 
 def fetch_ticker_kbs(ticker: str, start: str, end: str) -> pd.DataFrame:
     """
-    Fetch OHLCV from KBS via vnstock.
+    Fetch OHLCV from KBS via vnstock 5.x API.
+
+    Migration note (2026-10-14):
+    - vnstock 4.x: Vnstock().stock(symbol, source).quote.history(...)
+    - vnstock 5.x: Market().equity(symbol).ohlcv(..., source="kbs")
+
+    Default source changed from KBS (4.x) to VCI (5.x). Explicitly pass
+    source="kbs" to preserve data consistency with historical KBS data.
     """
     try:
-        from vnstock import Vnstock
+        from vnstock import Market
 
-        stock = Vnstock().stock(symbol=ticker, source="KBS")
-        df = stock.quote.history(start=start, end=end, interval="1D")
+        df = Market().equity(ticker).ohlcv(
+            start=start,
+            end=end,
+            interval="1D",
+            source="kbs",
+        )
         if df.empty:
             print(f"  ⚠️  vnstock trả về rỗng cho {ticker} (Nguồn: KBS)")
             return pd.DataFrame()
