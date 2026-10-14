@@ -10,6 +10,7 @@ yfinance>=1.2.0
 openpyxl>=3.1.5
 ipython>=8.18.0
 fpdf2>=2.7.9
+matplotlib>=3.9.0
 
 # Testing
 pytest>=8.0.0
