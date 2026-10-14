@@ -16,6 +16,33 @@ import plotly.io as pio
 import streamlit.components.v1 as components
 from datetime import datetime
 
+# ============================================================================
+# vnstock Sponsor Authentication (Streamlit Cloud deployment)
+# ----------------------------------------------------------------------------
+# Register device with vnstock API server using API key from Streamlit Secrets.
+# Falls back to environment variable for local development.
+# Guest mode (no key) still works but with rate limits.
+# ============================================================================
+try:
+    import vnstock
+    api_key = None
+    try:
+        # Streamlit Cloud: read from Secrets
+        api_key = st.secrets.get("VNSTOCK_API_KEY")
+    except (FileNotFoundError, KeyError):
+        # Local dev: fallback to environment variable
+        api_key = os.environ.get("VNSTOCK_API_KEY")
+    
+    if api_key:
+        vnstock.login(api_key)
+except ImportError:
+    # vnstock not installed (test environment, CI, etc.)
+    pass
+except Exception as e:
+    # Login failed - app continues in guest mode
+    # Log for debugging but don't block app startup
+    print(f"⚠️  vnstock login failed: {type(e).__name__}: {str(e)[:100]}")
+
 # Fallback mock data for UI testing when src modules are unavailable
 try:
     from data_loader import VN30_TICKERS, get_db_summary
