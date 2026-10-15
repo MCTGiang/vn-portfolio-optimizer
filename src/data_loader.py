@@ -81,24 +81,25 @@ def create_table() -> None:
 
 def fetch_ticker_kbs(ticker: str, start: str, end: str) -> pd.DataFrame:
     """
-    Fetch OHLCV from KBS via vnstock 5.x API.
+    Fetch OHLCV from KBS via vnstock 5.x Quote class (backward compat API).
 
-    Migration note (2026-10-14):
+    Migration notes (2026-10-14):
     - vnstock 4.x: Vnstock().stock(symbol, source).quote.history(...)
-    - vnstock 5.x: Market().equity(symbol).ohlcv(..., source="kbs")
+    - vnstock 5.x unified: Market().equity(symbol).ohlcv(...) - returns adjusted prices
+    - vnstock 5.x backward compat: Quote(symbol, source).history(...) - preserves 4.x behavior
 
-    Default source changed from KBS (4.x) to VCI (5.x). Explicitly pass
-    source="kbs" to preserve data consistency with historical KBS data.
+    Using Quote class to match v1.0.0 price computation (raw, unadjusted prices).
+    Market().ohlcv() applies different price adjustment logic that would break
+    historical benchmarks.
+
+    Reference: https://vnstocks.com/docs/vnstock/chuyen-doi/tu-vnstock-4x
     """
     try:
-        from vnstock import Market
+        from vnstock import Quote
 
-        df = Market().equity(ticker).ohlcv(
-            start=start,
-            end=end,
-            interval="1D",
-            source="kbs",
-        )
+        q = Quote(symbol=ticker, source="KBS")
+        df = q.history(start=start, end=end, interval="1D")
+        
         if df.empty:
             print(f"  ⚠️  vnstock trả về rỗng cho {ticker} (Nguồn: KBS)")
             return pd.DataFrame()
