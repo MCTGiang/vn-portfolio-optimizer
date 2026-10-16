@@ -19,29 +19,36 @@ from datetime import datetime
 # ============================================================================
 # vnstock Sponsor Authentication (Streamlit Cloud deployment)
 # ----------------------------------------------------------------------------
-# Register device with vnstock API server using API key from Streamlit Secrets.
-# Falls back to environment variable for local development.
-# Guest mode (no key) still works but with rate limits.
+# Follow vnstock official guide pattern for device registration.
+# Reference: https://vnstocks.com/docs/vnstock/cai-dat#1-trien-khai-tren-streamlit-cloud
 # ============================================================================
 try:
     import vnstock
-    api_key = None
+
+    # Read API key from Streamlit Secrets (production) or env var (local dev)
     try:
-        # Streamlit Cloud: read from Secrets
-        api_key = st.secrets.get("VNSTOCK_API_KEY")
+        _api_key = st.secrets.get("VNSTOCK_API_KEY")
     except (FileNotFoundError, KeyError):
-        # Local dev: fallback to environment variable
-        api_key = os.environ.get("VNSTOCK_API_KEY")
-    
-    if api_key:
-        vnstock.login(api_key)
+        _api_key = None
+    if not _api_key:
+        _api_key = os.environ.get("VNSTOCK_API_KEY")
+
+    # Device registration - let exceptions propagate to surface auth issues
+    if _api_key:
+        vnstock.login(_api_key)
+
+    # Status check - display tier to confirm authentication success
+    # If tier shows 'guest' instead of 'silver', login failed
+    try:
+        _account_info = vnstock.status()
+        _tier = _account_info.get('tier', 'guest').upper()
+        _VNSTOCK_TIER = _tier
+    except Exception as _e:
+        _VNSTOCK_TIER = f"ERROR: {type(_e).__name__}"
+
 except ImportError:
     # vnstock not installed (test environment, CI, etc.)
-    pass
-except Exception as e:
-    # Login failed - app continues in guest mode
-    # Log for debugging but don't block app startup
-    print(f"⚠️  vnstock login failed: {type(e).__name__}: {str(e)[:100]}")
+    _VNSTOCK_TIER = "NOT_INSTALLED"
 
 # Fallback mock data for UI testing when src modules are unavailable
 try:
@@ -365,6 +372,7 @@ with st.sidebar:
         end_date_str = summary['end_date'].max()
         mm_yyyy = f"{end_date_str[5:7]}/{end_date_str[:4]}"
         st.caption(f"📦 {L['source']}")
+        st.caption(f"🔑 Vnstock: {_VNSTOCK_TIER}")
         st.caption(f"📅 {summary['start_date'].min()} → {end_date_str}")
         st.markdown(f"""
         <div style="font-size:14px;color:{C_MUTED};margin-top:4px;display:flex;align-items:flex-start;gap:6px;">
